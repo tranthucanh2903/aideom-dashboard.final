@@ -1,0 +1,2336 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIDEOM-VN Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap');
+
+:root {
+  --bg-primary: #030712;
+  --bg-secondary: #0a0f1e;
+  --bg-card: #0d1526;
+  --bg-card-hover: #111d35;
+  --border: rgba(255,255,255,0.06);
+  --border-glow: rgba(236,72,153,0.3);
+  --pink: #ec4899;
+  --purple: #a855f7;
+  --cyan: #06b6d4;
+  --emerald: #10b981;
+  --amber: #f59e0b;
+  --red: #ef4444;
+  --blue: #3b82f6;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+  --grad-main: linear-gradient(135deg, #ec4899, #a855f7, #6366f1);
+  --grad-pink: linear-gradient(135deg, #ec4899, #f43f5e);
+  --grad-cyan: linear-gradient(135deg, #06b6d4, #3b82f6);
+  --grad-emerald: linear-gradient(135deg, #10b981, #059669);
+  --grad-amber: linear-gradient(135deg, #f59e0b, #ef4444);
+  --sidebar-w: 220px;
+  --transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  overflow-x: hidden;
+}
+
+/* ══ SCROLLBAR ══ */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.4); border-radius: 2px; }
+
+/* ══ SIDEBAR ══ */
+#sidebar {
+  width: var(--sidebar-w);
+  min-height: 100vh;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+  transition: var(--transition);
+  overflow-y: auto;
+}
+
+.sidebar-logo {
+  padding: 20px 16px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.logo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--grad-main);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.logo-title {
+  font-size: 18px;
+  font-weight: 700;
+  background: var(--grad-main);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+.logo-sub {
+  font-size: 10px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-top: 4px;
+}
+
+.nav-section {
+  padding: 8px 0;
+  flex: 1;
+}
+
+.nav-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  padding: 8px 16px 4px;
+  text-transform: uppercase;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  cursor: pointer;
+  border-radius: 0;
+  transition: var(--transition);
+  position: relative;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  border-left: 2px solid transparent;
+}
+
+.nav-item:hover {
+  background: rgba(255,255,255,0.04);
+  color: var(--text-primary);
+}
+
+.nav-item.active {
+  background: rgba(168,85,247,0.1);
+  border-left-color: var(--purple);
+  color: var(--text-primary);
+}
+
+.nav-item .nav-icon { font-size: 14px; width: 16px; text-align: center; }
+
+.nav-badge {
+  margin-left: auto;
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.badge-easy { background: rgba(16,185,129,0.2); color: var(--emerald); }
+.badge-med { background: rgba(245,158,11,0.2); color: var(--amber); }
+.badge-hard { background: rgba(239,68,68,0.2); color: var(--red); }
+.badge-vhard { background: rgba(168,85,247,0.2); color: var(--purple); }
+
+.sidebar-footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  font-size: 10px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.sidebar-footer strong { color: var(--text-secondary); font-size: 11px; display: block; margin-bottom: 4px; }
+
+/* ══ MAIN ══ */
+#main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  min-height: 100vh;
+  overflow-y: auto;
+}
+
+.page { display: none; padding: 28px 32px; max-width: 1200px; animation: fadeIn 0.3s ease; }
+.page.active { display: block; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ══ PAGE HEADER ══ */
+.page-header { margin-bottom: 28px; }
+
+.page-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+  margin-bottom: 10px;
+}
+
+.page-title .vn-flag {
+  font-size: 18px;
+  margin-right: 6px;
+}
+
+.tags-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+
+.tag {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid;
+}
+
+.tag-pink { background: rgba(236,72,153,0.1); border-color: rgba(236,72,153,0.3); color: var(--pink); }
+.tag-purple { background: rgba(168,85,247,0.1); border-color: rgba(168,85,247,0.3); color: var(--purple); }
+.tag-cyan { background: rgba(6,182,212,0.1); border-color: rgba(6,182,212,0.3); color: var(--cyan); }
+.tag-emerald { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.3); color: var(--emerald); }
+.tag-amber { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.3); color: var(--amber); }
+
+.page-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 800px;
+}
+
+.formula-block {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--purple);
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--cyan);
+  margin: 12px 0;
+  line-height: 1.8;
+}
+
+/* ══ GRID ══ */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+
+/* ══ CARDS ══ */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  transition: var(--transition);
+}
+
+.card:hover { border-color: rgba(168,85,247,0.2); background: var(--bg-card-hover); }
+
+.card-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.card-value {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.card-sub { font-size: 12px; color: var(--text-muted); }
+
+.card-delta {
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+.delta-up { color: var(--emerald); }
+.delta-down { color: var(--red); }
+
+/* ══ STAT CARDS ══ */
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+}
+
+.stat-card.pink::before { background: var(--grad-pink); }
+.stat-card.purple::before { background: var(--grad-main); }
+.stat-card.cyan::before { background: var(--grad-cyan); }
+.stat-card.emerald::before { background: var(--grad-emerald); }
+.stat-card.amber::before { background: var(--grad-amber); }
+
+.stat-icon {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+
+.icon-pink { background: rgba(236,72,153,0.15); }
+.icon-purple { background: rgba(168,85,247,0.15); }
+.icon-cyan { background: rgba(6,182,212,0.15); }
+.icon-emerald { background: rgba(16,185,129,0.15); }
+.icon-amber { background: rgba(245,158,11,0.15); }
+
+/* ══ CHART CONTAINER ══ */
+.chart-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.chart-title { font-size: 13px; font-weight: 600; margin-bottom: 16px; color: var(--text-primary); }
+.chart-wrap { position: relative; height: 220px; }
+
+/* ══ TABLE ══ */
+.data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.data-table th {
+  background: rgba(255,255,255,0.04);
+  padding: 9px 12px;
+  text-align: left;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+.data-table td { padding: 9px 12px; border-bottom: 1px solid rgba(255,255,255,0.03); color: var(--text-secondary); }
+.data-table tr:hover td { background: rgba(255,255,255,0.02); color: var(--text-primary); }
+
+/* ══ SLIDERS ══ */
+.slider-group { margin-bottom: 14px; }
+.slider-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+.slider-label span:last-child { font-family: 'JetBrains Mono', monospace; color: var(--purple); font-weight: 600; }
+
+input[type=range] {
+  width: 100%;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.1);
+  outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--grad-main);
+  cursor: pointer;
+  border: 2px solid var(--bg-card);
+}
+
+/* ══ RESULT BOX ══ */
+.result-box {
+  background: rgba(168,85,247,0.05);
+  border: 1px solid rgba(168,85,247,0.2);
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+}
+
+.result-label { font-size: 11px; color: var(--purple); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+.result-value { font-size: 32px; font-weight: 700; background: var(--grad-main); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.result-unit { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+/* ══ PROGRESS BAR ══ */
+.progress-bar { height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; margin-top: 6px; }
+.progress-fill { height: 100%; border-radius: 3px; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); }
+
+/* ══ HERO ══ */
+.hero {
+  background: linear-gradient(135deg, rgba(236,72,153,0.05) 0%, rgba(168,85,247,0.08) 50%, rgba(99,102,241,0.05) 100%);
+  border: 1px solid rgba(168,85,247,0.15);
+  border-radius: 16px;
+  padding: 36px;
+  margin-bottom: 28px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -50%; right: -10%;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 52px;
+  font-weight: 400;
+  background: var(--grad-main);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+
+.hero-subtitle {
+  font-size: 16px;
+  color: var(--text-secondary);
+  max-width: 600px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.hero-stats { display: flex; gap: 24px; flex-wrap: wrap; }
+.hero-stat { text-align: center; }
+.hero-stat-val { font-size: 22px; font-weight: 700; color: var(--text-primary); }
+.hero-stat-lbl { font-size: 10px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px; }
+
+/* ══ REGION CARD ══ */
+.region-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+}
+.region-name { font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+.region-metric { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+.region-metric span:last-child { color: var(--text-secondary); font-weight: 500; }
+
+/* ══ PROJECT CARD ══ */
+.project-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  margin-bottom: 8px;
+  transition: var(--transition);
+}
+.project-item:hover { border-color: rgba(168,85,247,0.2); background: rgba(255,255,255,0.02); }
+.project-item.selected { border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.05); }
+
+.project-check {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+
+.project-check.checked { background: var(--emerald); border-color: var(--emerald); color: white; }
+
+/* ══ PARETO DOTS ══ */
+.pareto-canvas { border-radius: 8px; }
+
+/* ══ TIMELINE ══ */
+.timeline-bar {
+  display: flex;
+  gap: 2px;
+  margin: 12px 0;
+}
+.t-bar-item {
+  flex: 1;
+  height: 40px;
+  border-radius: 4px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 4px;
+  font-size: 9px;
+  color: rgba(255,255,255,0.6);
+  font-weight: 600;
+}
+
+/* ══ SCENARIO SELECTOR ══ */
+.scenario-btn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.scenario-btn:hover, .scenario-btn.active {
+  border-color: rgba(168,85,247,0.4);
+  background: rgba(168,85,247,0.1);
+  color: var(--purple);
+}
+
+/* ══ Q-TABLE ══ */
+.q-table { font-family: 'JetBrains Mono', monospace; font-size: 10px; width: 100%; border-collapse: collapse; }
+.q-table th { padding: 5px 8px; background: rgba(255,255,255,0.05); color: var(--text-muted); text-align: center; font-size: 9px; }
+.q-table td { padding: 4px 8px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.03); }
+
+/* ══ TRAIN BUTTON ══ */
+.btn-primary {
+  padding: 10px 22px;
+  background: var(--grad-main);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 13px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+
+.btn-outline {
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid rgba(168,85,247,0.4);
+  border-radius: 8px;
+  color: var(--purple);
+  font-size: 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.btn-outline:hover { background: rgba(168,85,247,0.1); }
+
+/* ══ ALERT ══ */
+.alert-success {
+  background: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.3);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--emerald);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ══ HEATMAP ══ */
+.heatmap-grid { display: grid; gap: 3px; }
+.heatmap-cell {
+  border-radius: 3px;
+  padding: 8px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  text-align: center;
+  color: white;
+}
+
+/* ══ TAB SYSTEM ══ */
+.tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+.tab-btn {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: var(--transition);
+}
+.tab-btn:hover { color: var(--text-secondary); }
+.tab-btn.active { color: var(--purple); border-bottom-color: var(--purple); }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.2s ease; }
+
+/* ══ PIE LEGEND ══ */
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+/* ══ DIVIDER ══ */
+.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+/* ══ SECTION TITLE ══ */
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-title::before {
+  content: '';
+  width: 3px; height: 14px;
+  background: var(--grad-main);
+  border-radius: 2px;
+}
+
+/* ══ RISK METER ══ */
+.risk-bar { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.08); overflow: hidden; margin: 4px 0; }
+.risk-fill { height: 100%; border-radius: 4px; }
+
+/* ══ NOTIFICATION DOT ══ */
+.notif-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--pink);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ══ GLOW EFFECT ══ */
+.glow-text { text-shadow: 0 0 20px rgba(168,85,247,0.5); }
+
+/* ══ RESPONSIVE ══ */
+@media (max-width: 900px) {
+  :root { --sidebar-w: 180px; }
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: 1fr 1fr; }
+  .page-title { font-size: 20px; }
+}
+@media (max-width: 700px) {
+  #sidebar { width: 60px; }
+  #main { margin-left: 60px; }
+  .nav-item span:not(.nav-icon) { display: none; }
+  .logo-title, .logo-sub, .sidebar-footer { display: none; }
+  .grid-2 { grid-template-columns: 1fr; }
+}
+
+/* Mini sparkline simulation */
+.sparkline { display: flex; align-items: flex-end; gap: 2px; height: 32px; }
+.spark-bar { flex: 1; border-radius: 2px 2px 0 0; background: rgba(168,85,247,0.4); }
+</style>
+</head>
+<body>
+
+<!-- ══════════ SIDEBAR ══════════ -->
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-badge">🇻🇳 AIDEOM-VN</div>
+    <div class="logo-title">AIDEOM-VN</div>
+    <div class="logo-sub">Mô hình ra quyết định phát triển<br>kinh tế VN trong kỉ nguyên AI</div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Tổng quan</div>
+    <div class="nav-item active" onclick="showPage('home', this)">
+      <span class="nav-icon">🏠</span><span>Trang chủ</span>
+    </div>
+
+    <div class="nav-label">Cấp độ Dễ</div>
+    <div class="nav-item" onclick="showPage('bai1', this)">
+      <span class="nav-icon">📈</span><span>Bài 1 – Cobb-Douglas</span>
+      <span class="nav-badge badge-easy">DỄ</span>
+    </div>
+    <div class="nav-item" onclick="showPage('bai2', this)">
+      <span class="nav-icon">💰</span><span>Bài 2 – LP ngân sách</span>
+      <span class="nav-badge badge-easy">DỄ</span>
+    </div>
+    <div class="nav-item" onclick="showPage('bai3', this)">
+      <span class="nav-icon">🏭</span><span>Bài 3 – Priority ngành</span>
+      <span class="nav-badge badge-easy">DỄ</span>
+    </div>
+
+    <div class="nav-label">Cấp độ Trung bình</div>
+    <div class="nav-item" onclick="showPage('bai4', this)">
+      <span class="nav-icon">🗺️</span><span>Bài 4 – LP ngành-vùng</span>
+      <span class="nav-badge badge-med">TB</span>
+    </div>
+    <div class="nav-item" onclick="showPage('bai5', this)">
+      <span class="nav-icon">📦</span><span>Bài 5 – MIP dự án</span>
+      <span class="nav-badge badge-med">TB</span>
+    </div>
+    <div class="nav-item" onclick="showPage('bai6', this)">
+      <span class="nav-icon">🏆</span><span>Bài 6 – TOPSIS vùng</span>
+      <span class="nav-badge badge-med">TB</span>
+    </div>
+
+    <div class="nav-label">Cấp độ Khá khó</div>
+    <div class="nav-item" onclick="showPage('bai7', this)">
+      <span class="nav-icon">🌐</span><span>Bài 7 – NSGA-II Pareto</span>
+      <span class="nav-badge badge-hard">KHÓ</span>
+    </div>
+    <div class="nav-item" onclick="showPage('bai8', this)">
+      <span class="nav-icon">⏱️</span><span>Bài 8 – Động 2026-2035</span>
+      <span class="nav-badge badge-hard">KHÓ</span>
+    </div>
+    <div class="nav-item" onclick="showPage('bai9', this)">
+      <span class="nav-icon">👥</span><span>Bài 9 – Lao động & AI</span>
+      <span class="nav-badge badge-hard">KHÓ</span>
+    </div>
+
+    <div class="nav-label">Cấp độ Khó</div>
+    <div class="nav-item" onclick="showPage('bai10', this)">
+      <span class="nav-icon">🎲</span><span>Bài 10 – Stochastic SP</span>
+      <span class="nav-badge badge-vhard">V.KHÓ</span>
+    </div>
+    <div class="nav-item" onclick="showPage('bai11', this)">
+      <span class="nav-icon">🤖</span><span>Bài 11 – Q-learning RL</span>
+      <span class="nav-badge badge-vhard">V.KHÓ</span>
+    </div>
+    <div class="nav-item" onclick="showPage('bai12', this)">
+      <span class="nav-icon">🇻🇳</span><span>Bài 12 – AIDEOM tích hợp</span>
+      <span class="notif-dot"></span>
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <strong>📊 Dữ liệu: NSO, MoST, MIC, MPI, WB, GII 2025</strong>
+    ⚙️ Stack: React · Recharts · PuLP · CVXPY<br>
+    🎓 Dựa trên giáo trình AIDEOM-VN 2026
+  </div>
+</nav>
+
+<!-- ══════════ MAIN ══════════ -->
+<main id="main">
+
+<!-- ████ HOME PAGE ████ -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <div class="hero-title">AIDEOM-VN</div>
+    <div class="hero-subtitle">Decision Models for Vietnam Economic Development in the AI Era — Hệ thống 12 mô hình tối ưu hóa cho phát triển kinh tế số</div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-val" id="counter-gdp">0</div>
+        <div class="hero-stat-lbl">GDP 2025 (tỷ USD)</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-val" id="counter-gii">44</div>
+        <div class="hero-stat-lbl">GII Ranking / 139</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-val" id="counter-digital">0%</div>
+        <div class="hero-stat-lbl">Kinh tế số / GDP</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-val" id="counter-ai">0</div>
+        <div class="hero-stat-lbl">Startup AI (2025)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-4" style="margin-bottom:20px">
+    <div class="stat-card pink">
+      <div class="stat-icon icon-pink">📊</div>
+      <div class="card-title">GDP Tăng trưởng</div>
+      <div class="card-value" style="background:var(--grad-pink);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">8.02%</div>
+      <div class="card-sub">Năm 2025 – NSO</div>
+      <div class="card-delta delta-up">↑ +0.93pp vs 2024</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-icon icon-purple">🤖</div>
+      <div class="card-title">AI Readiness</div>
+      <div class="card-value" style="background:var(--grad-main);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">58.4</div>
+      <div class="card-sub">Oxford Insights / 100</div>
+      <div class="card-delta delta-up">↑ Tăng 4.2 pts</div>
+    </div>
+    <div class="stat-card cyan">
+      <div class="stat-icon icon-cyan">💻</div>
+      <div class="card-title">Kinh tế số</div>
+      <div class="card-value" style="background:var(--grad-cyan);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">19.5%</div>
+      <div class="card-sub">% GDP – MIC 2025</div>
+      <div class="card-delta delta-up">↑ Mục tiêu 20% 2025</div>
+    </div>
+    <div class="stat-card emerald">
+      <div class="stat-icon icon-emerald">🌟</div>
+      <div class="card-title">Innovation Index</div>
+      <div class="card-value" style="background:var(--grad-emerald);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">44/139</div>
+      <div class="card-sub">GII 2025 – WIPO</div>
+      <div class="card-delta">→ Giữ vị trí</div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:20px">
+    <div class="chart-container">
+      <div class="chart-title">📈 GDP Việt Nam 2020–2025 (nghìn tỷ VND)</div>
+      <div class="chart-wrap"><canvas id="chartGDP"></canvas></div>
+    </div>
+    <div class="chart-container">
+      <div class="chart-title">🔢 Kinh tế số & AI Readiness theo năm</div>
+      <div class="chart-wrap"><canvas id="chartDigital"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div class="card">
+      <div class="section-title">Cấu trúc 12 Bài tập</div>
+      <div style="font-size:12px;color:var(--text-secondary);line-height:1.8">
+        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">
+          <span>🟢 Cấp độ Dễ (Bài 1-3)</span><span style="color:var(--emerald)">3 bài</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">
+          <span>🟡 Trung bình (Bài 4-6)</span><span style="color:var(--amber)">3 bài</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">
+          <span>🔴 Khá khó (Bài 7-9)</span><span style="color:var(--red)">3 bài</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0">
+          <span>🟣 Khó (Bài 10-12)</span><span style="color:var(--purple)">3 bài</span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">Công nghệ & Phương pháp</div>
+      <div style="font-size:12px;color:var(--text-secondary);line-height:2">
+        LP · MIP · TOPSIS · NSGA-II<br>
+        Stochastic Programming · Q-Learning<br>
+        Cobb-Douglas · Dynamic DP<br>
+        Python · PuLP · Pyomo · pymoo<br>
+        CVXPY · gymnasium · Streamlit
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">Dữ liệu Tham chiếu 2024</div>
+      <div style="font-size:12px;color:var(--text-secondary)">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>FDI giải ngân</span><span style="color:var(--cyan)">25.35 tỷ USD</span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>Xuất khẩu</span><span style="color:var(--cyan)">405.5 tỷ USD</span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>Lực lượng LĐ</span><span style="color:var(--cyan)">52.9 triệu</span></div>
+        <div style="display:flex;justify-content:space-between;"><span>DN công nghệ số</span><span style="color:var(--cyan)">73,788</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ████ BÀI 1 ████ -->
+<div class="page" id="page-bai1">
+  <div class="page-header">
+    <div class="tags-row">
+      <span class="tag tag-emerald">CẤP ĐỘ DỄ</span>
+      <span class="tag tag-cyan">Cobb-Douglas</span>
+      <span class="tag tag-purple">Growth Accounting</span>
+    </div>
+    <h1 class="page-title">📈 Bài 1 — Hàm sản xuất Cobb-Douglas mở rộng với AI và số hóa</h1>
+    <div class="formula-block">
+      Yₜ = Aₜ · Kₜ^α · Lₜ^β · Dₜ^γ · AIₜ^δ · Hₜ^θ<br>
+      Điều kiện: α + β + γ + δ + θ = 1  →  0.33 + 0.42 + 0.10 + 0.08 + 0.07 = 1.00
+    </div>
+    <div class="page-desc">Mô hình hóa GDP Việt Nam bằng hàm sản xuất mở rộng có thêm yếu tố số hóa D, năng lực AI và vốn nhân lực số H. Điều chỉnh các slider để xem GDP thay đổi theo kịch bản.</div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:20px">
+    <div class="card">
+      <div class="section-title">Điều chỉnh tham số đầu vào (2025)</div>
+      <div class="slider-group">
+        <div class="slider-label"><span>K – Vốn vật chất (nghìn tỷ VND)</span><span id="v-K">25,900</span></div>
+        <input type="range" min="20000" max="40000" value="25900" step="100" oninput="updateCobb(this,'K',this.value)">
+      </div>
+      <div class="slider-group">
+        <div class="slider-label"><span>L – Lao động (triệu người)</span><span id="v-L">53.4</span></div>
+        <input type="range" min="45" max="65" value="53.4" step="0.1" oninput="updateCobb(this,'L',this.value)">
+      </div>
+      <div class="slider-group">
+        <div class="slider-label"><span>D – Kinh tế số (%GDP)</span><span id="v-D">19.5</span></div>
+        <input type="range" min="10" max="40" value="19.5" step="0.5" oninput="updateCobb(this,'D',this.value)">
+      </div>
+      <div class="slider-group">
+        <div class="slider-label"><span>AI – DN công nghệ số (nghìn)</span><span id="v-AI">80.1</span></div>
+        <input type="range" min="50" max="150" value="80.1" step="0.5" oninput="updateCobb(this,'AI',this.value)">
+      </div>
+      <div class="slider-group">
+        <div class="slider-label"><span>H – LĐ qua đào tạo (%)</span><span id="v-H">29.2</span></div>
+        <input type="range" min="20" max="50" value="29.2" step="0.5" oninput="updateCobb(this,'H',this.value)">
+      </div>
+    </div>
+    <div>
+      <div class="result-box" style="margin-bottom:14px">
+        <div class="result-label">GDP Dự báo (Ŷ)</div>
+        <div class="result-value" id="gdp-result">12,847</div>
+        <div class="result-unit">nghìn tỷ VND · TFP A = <span id="tfp-val">1.284</span></div>
+      </div>
+      <div class="chart-container">
+        <div class="chart-title">Đóng góp tăng trưởng theo yếu tố</div>
+        <div class="chart-wrap" style="height:180px"><canvas id="chartCobb"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-container">
+    <div class="chart-title">📊 GDP thực tế vs Dự báo 2020–2025 (nghìn tỷ VND)</div>
+    <div class="chart-wrap"><canvas id="chartCobbLine"></canvas></div>
+  </div>
+</div>
+
+<!-- ████ BÀI 2 ████ -->
+<div class="page" id="page-bai2">
+  <div class="page-header">
+    <div class="tags-row">
+      <span class="tag tag-emerald">CẤP ĐỘ DỄ</span>
+      <span class="tag tag-cyan">LP Optimization</span>
+      <span class="tag tag-amber">100,000 tỷ VND</span>
+    </div>
+    <h1 class="page-title">💰 Bài 2 — LP Phân bổ ngân sách số theo 4 hạng mục</h1>
+    <div class="formula-block">
+      max Z = 0.85·x₁ + 1.20·x₂ + 0.95·x₃ + 1.35·x₄<br>
+      s.t. x₁+x₂+x₃+x₄ ≤ 100 | x₁≥25 | x₂≥15 | x₃≥20 | x₄≥10
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:20px">
+    <div class="card">
+      <div class="section-title">Phân bổ ngân sách (nghìn tỷ VND)</div>
+      <div class="slider-group">
+        <div class="slider-label"><span>x₁ – Hạ tầng số</span><span id="v-x1">25</span></div>
+        <input type="range" min="25" max="50" value="25" step="1" oninput="updateBudget()">
+      </div>
+      <div class="slider-group">
+        <div class="slider-label"><span>x₂ – AI và Dữ liệu</span><span id="v-x2">40</span></div>
+        <input type="range" min="15" max="50" value="40" step="1" oninput="updateBudget()">
+      </div>
+      <div class="slider-group">
+        <div class="slider-label"><span>x₃ – Nhân lực số</span><span id="v-x3">20</span></div>
+        <input type="range" min="20" max="40" value="20" step="1" oninput="updateBudget()">
+      </div>
+      <div class="slider-group">
+        <div class="slider-label"><span>x₄ – R&D Công nghệ</span><span id="v-x4">15</span></div>
+        <input type="range" min="10" max="30" value="15" step="1" oninput="updateBudget()">
+      </div>
+
+      <div id="budget-status" class="alert-success">✅ Nghiệm khả thi — Z* = <span id="z-val">83.25</span> nghìn tỷ GDP tăng thêm</div>
+    </div>
+    <div class="chart-container">
+      <div class="chart-title">Phân bổ ngân sách tối ưu</div>
+      <div class="chart-wrap" style="height:200px"><canvas id="chartBudgetPie"></canvas></div>
+      <div id="pie-legend" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-title">Tổng ngân sách</div>
+      <div class="card-value" id="total-budget" style="color:var(--cyan)">100</div>
+      <div class="card-sub">nghìn tỷ VND / 100 tối đa</div>
+      <div class="progress-bar"><div class="progress-fill" id="pb-budget" style="background:var(--grad-cyan);width:100%"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">GDP tăng kỳ vọng Z*</div>
+      <div class="card-value" id="z-card" style="color:var(--purple)">83.25</div>
+      <div class="card-sub">nghìn tỷ VND</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Tỷ lệ CL chiến lược (x₂+x₄)</div>
+      <div class="card-value" id="strat-ratio" style="color:var(--emerald)">55%</div>
+      <div class="card-sub">Yêu cầu ≥ 35%</div>
+      <div class="progress-bar"><div class="progress-fill" id="pb-strat" style="background:var(--grad-emerald);width:55%"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ████ BÀI 3 ████ -->
+<div class="page" id="page-bai3">
+  <div class="page-header">
+    <div class="tags-row">
+      <span class="tag tag-emerald">CẤP ĐỘ DỄ</span>
+      <span class="tag tag-purple">MCDM Priority Score</span>
+      <span class="tag tag-cyan">10 ngành Việt Nam</span>
+    </div>
+    <h1 class="page-title">🏭 Bài 3 — Chỉ số ưu tiên ngành Priorityᵢ cho 10 ngành</h1>
+    <div class="formula-block">
+      Priorityᵢ = a₁·Growth + a₂·Productivity + a₃·Spillover + a₄·Export + a₅·Employment + a₆·AIReadiness − a₇·Risk
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:20px">
+    <div class="card">
+      <div class="section-title">Điều chỉnh trọng số</div>
+      <div class="slider-group">
+        <div class="slider-label"><span>a₁ – Tăng trưởng</span><span id="w1">0.15</span></div>
+        <input type="range" min="0.05" max="0.40" value="0.15" step="0.05" oninput="updatePriority()">
+      </div>
+      <div class="slider-group">
+        <div class="slider-label"><span>a₂ – Năng suất</span><span id="w2">0.15</span></div>
+        <input type="range" min="0.05" max="0.40" value="0.15" step="0.05" oninput="updatePriority()">
+      </div>
+      <div class="slider-group">
+        <div class="slider-label"><span>a₃ – Lan tỏa</span><span id="w3">0.20</span></div>
+        <input type="range" min="0.05" max="0.40" value="0.20" step="0.05" oninput="updatePriority()">
+      </div>
+      <div class="slider-group">
+        <div class="slider-label"><span>a₆ – AI Readiness</span><span id="w6">0.20</span></div>
+        <input type="range" min="0.05" max="0.40" value="0.20" step="0.05" oninput="updatePriority()">
+      </div>
+    </div>
+    <div class="chart-container">
+      <div class="chart-title">Priority Score theo ngành</div>
+      <div class="chart-wrap" style="height:220px"><canvas id="chartPriority"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Bảng xếp hạng 10 ngành kinh tế</div>
+    <table class="data-table">
+      <thead><tr><th>#</th><th>Ngành</th><th>Tăng trưởng</th><th>AI Readiness</th><th>Rủi ro TĐH</th><th>Priority Score</th><th>Trend</th></tr></thead>
+      <tbody id="priority-table"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ████ BÀI 4 ████ -->
+<div class="page" id="page-bai4">
+  <div class="page-header">
+    <div class="tags-row">
+      <span class="tag tag-amber">CẤP ĐỘ TRUNG BÌNH</span>
+      <span class="tag tag-purple">LP 24 biến</span>
+      <span class="tag tag-pink">50,000 tỷ VND</span>
+    </div>
+    <h1 class="page-title">🗺️ Bài 4 — LP Phân bổ ngân sách số theo ngành-vùng</h1>
+    <div class="formula-block">
+      max Z = Σᵣ Σⱼ βⱼ,ᵣ · xⱼ,ᵣ  |  Ngân sách: 50,000 tỷ VND  |  6 vùng × 4 hạng mục = 24 biến
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:20px">
+    <div>
+      <div class="section-title" style="margin-bottom:14px">Phân bổ tối ưu theo vùng (tỷ VND)</div>
+      <div class="grid-2">
+        <div class="region-card">
+          <div class="region-name" style="color:var(--cyan)">🏔️ Trung du MN phía Bắc</div>
+          <div class="region-metric"><span>Hạ tầng (I)</span><span>3,200</span></div>
+          <div class="region-metric"><span>Chuyển đổi số (D)</span><span>1,500</span></div>
+          <div class="region-metric"><span>AI</span><span>300</span></div>
+          <div class="region-metric"><span>Nhân lực (H)</span><span>5,000</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="background:var(--grad-cyan);width:50%"></div></div>
+        </div>
+        <div class="region-card">
+          <div class="region-name" style="color:var(--purple)">🏙️ Đồng bằng sông Hồng</div>
+          <div class="region-metric"><span>Hạ tầng (I)</span><span>2,000</span></div>
+          <div class="region-metric"><span>Chuyển đổi số (D)</span><span>4,000</span></div>
+          <div class="region-metric"><span>AI</span><span>6,000</span></div>
+          <div class="region-metric"><span>Nhân lực (H)</span><span>0</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="background:var(--grad-main);width:80%"></div></div>
+        </div>
+        <div class="region-card">
+          <div class="region-name" style="color:var(--amber)">🌊 Bắc & DH Trung Bộ</div>
+          <div class="region-metric"><span>Hạ tầng (I)</span><span>2,500</span></div>
+          <div class="region-metric"><span>Chuyển đổi số (D)</span><span>2,000</span></div>
+          <div class="region-metric"><span>AI</span><span>500</span></div>
+          <div class="region-metric"><span>Nhân lực (H)</span><span>5,000</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="background:var(--grad-amber);width:60%"></div></div>
+        </div>
+        <div class="region-card">
+          <div class="region-name" style="color:var(--emerald)">🌿 Tây Nguyên</div>
+          <div class="region-metric"><span>Hạ tầng (I)</span><span>3,500</span></div>
+          <div class="region-metric"><span>Chuyển đổi số (D)</span><span>800</span></div>
+          <div class="region-metric"><span>AI</span><span>200</span></div>
+          <div class="region-metric"><span>Nhân lực (H)</span><span>5,500</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="background:var(--grad-emerald);width:50%"></div></div>
+        </div>
+        <div class="region-card">
+          <div class="region-name" style="color:var(--pink)">🏗️ Đông Nam Bộ</div>
+          <div class="region-metric"><span>Hạ tầng (I)</span><span>1,500</span></div>
+          <div class="region-metric"><span>Chuyển đổi số (D)</span><span>4,500</span></div>
+          <div class="region-metric"><span>AI</span><span>6,000</span></div>
+          <div class="region-metric"><span>Nhân lực (H)</span><span>0</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="background:var(--grad-pink);width:96%"></div></div>
+        </div>
+        <div class="region-card">
+          <div class="region-name" style="color:var(--cyan)">🌾 Đồng bằng sông Cửu Long</div>
+          <div class="region-metric"><span>Hạ tầng (I)</span><span>3,000</span></div>
+          <div class="region-metric"><span>Chuyển đổi số (D)</span><span>1,200</span></div>
+          <div class="region-metric"><span>AI</span><span>800</span></div>
+          <div class="region-metric"><span>Nhân lực (H)</span><span>5,000</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="background:var(--grad-cyan);width:60%"></div></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="chart-container" style="margin-bottom:16px">
+        <div class="chart-title">Phân bổ hạng mục theo vùng (tỷ VND)</div>
+        <div class="chart-wrap"><canvas id="chartRegion"></canvas></div>
+      </div>
+      <div class="result-box">
+        <div class="result-label">GDP Gain Tối ưu Z*</div>
+        <div class="result-value">67,842</div>
+        <div class="result-unit">tỷ VND · Chi phí công bằng: 4,218 tỷ</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ████ BÀI 5 ████ -->
+<div class="page" id="page-bai5">
+  <div class="page-header">
+    <div class="tags-row">
+      <span class="tag tag-amber">CẤP ĐỘ TRUNG BÌNH</span>
+      <span class="tag tag-purple">MIP Knapsack</span>
+      <span class="tag tag-pink">15 dự án</span>
+    </div>
+    <h1 class="page-title">📦 Bài 5 — MIP Lựa chọn 15 dự án chuyển đổi số quốc gia</h1>
+    <div class="formula-block">
+      max Σᵢ Bᵢ·yᵢ  |  yᵢ ∈ {0,1}  |  Ngân sách 5 năm: 80,000 tỷ VND  |  7 ≤ Σyᵢ ≤ 11
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card" style="max-height:580px;overflow-y:auto">
+      <div class="section-title">Danh sách dự án (click để toggle)</div>
+      <div id="project-list"></div>
+    </div>
+    <div>
+      <div class="grid-2" style="margin-bottom:16px">
+        <div class="result-box">
+          <div class="result-label">Dự án đã chọn</div>
+          <div class="result-value" id="proj-count">8</div>
+          <div class="result-unit">/ 11 tối đa</div>
+        </div>
+        <div class="result-box" style="border-color:rgba(16,185,129,0.2)">
+          <div class="result-label" style="color:var(--emerald)">NPV Tổng Z*</div>
+          <div class="result-value" id="proj-npv" style="background:var(--grad-emerald);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">143,600</div>
+          <div class="result-unit">tỷ VND</div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-title">Chi phí sử dụng</div>
+        <div class="card-value" id="proj-cost" style="color:var(--amber)">76,800</div>
+        <div class="card-sub">tỷ VND / 80,000 tối đa</div>
+        <div class="progress-bar" style="margin-top:8px"><div class="progress-fill" id="pb-proj" style="background:var(--grad-amber);width:89.75%"></div></div>
+      </div>
+      <div class="chart-container">
+        <div class="chart-title">NPV vs Chi phí dự án</div>
+        <div class="chart-wrap" style="height:180px"><canvas id="chartProj"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ████ BÀI 6 ████ -->
+<div class="page" id="page-bai6">
+  <div class="page-header">
+    <div class="tags-row">
+      <span class="tag tag-amber">CẤP ĐỘ TRUNG BÌNH</span>
+      <span class="tag tag-purple">TOPSIS</span>
+      <span class="tag tag-cyan">Entropy Weight</span>
+    </div>
+    <h1 class="page-title">🏆 Bài 6 — TOPSIS Xếp hạng 6 vùng kinh tế theo ưu tiên AI</h1>
+    <div class="formula-block">
+      Cᵢ* = Sᵢ⁻ / (Sᵢ* + Sᵢ⁻)  |  Sᵢ* = √Σ(vᵢⱼ−vⱼ*)²  |  vᵢⱼ = wⱼ·rᵢⱼ
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:20px">
+    <div class="card">
+      <div class="section-title">Kết quả TOPSIS – 6 vùng KT-XH</div>
+      <div id="topsis-bars"></div>
+    </div>
+    <div class="chart-container">
+      <div class="chart-title">Radar – So sánh vùng theo 4 tiêu chí chính</div>
+      <div class="chart-wrap"><canvas id="chartTopsis"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Ma trận dữ liệu – 6 vùng kinh tế Việt Nam 2024</div>
+    <table class="data-table">
+      <thead><tr><th>Vùng</th><th>GRDP/người (triệu)</th><th>FDI (tỷ USD)</th><th>Digital Index</th><th>AI Readiness</th><th>LĐ đào tạo %</th><th>TOPSIS C*</th><th>Xếp hạng</th></tr></thead>
+      <tbody id="topsis-table"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ████ BÀI 7 ████ -->
+<div class="page" id="page-bai7">
+  <div class="page-header">
+    <div class="tags-row">
+      <span class="tag tag-pink">CẤP ĐỘ KHÁ KHÓ</span>
+      <span class="tag tag-purple">NSGA-II</span>
+      <span class="tag tag-amber">Pareto Front</span>
+    </div>
+    <h1 class="page-title">🌐 Bài 7 — Tối ưu đa mục tiêu Pareto với NSGA-II</h1>
+    <div class="formula-block">
+      max f₁(GDP) · min f₂(Gini) · min f₃(Emission) · min f₄(CyberRisk)  |  24 biến · 4 mục tiêu
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:20px">
+    <div class="chart-container">
+      <div class="chart-title">Pareto Front: GDP Gain vs Bất bình đẳng (f₁ vs f₂)</div>
+      <div class="chart-wrap"><canvas id="chartPareto"></canvas></div>
+    </div>
+    <div class="chart-container">
+      <div class="chart-title">Pareto Front: GDP vs Phát thải (f₁ vs f₃)</div>
+      <div class="chart-wrap"><canvas id="chartPareto2"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div class="card">
+      <div class="section-title">Nghiệm Thỏa hiệp (TOPSIS)</div>
+      <div style="font-size:12px;color:var(--text-secondary)">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span>f₁ GDP Gain</span><span style="color:var(--emerald)">52,840 tỷ</span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span>f₂ Gini (MAD)</span><span style="color:var(--amber)">0.142</span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span>f₃ Emission</span><span style="color:var(--cyan)">18.4 ktCO₂</span></div>
+        <div style="display:flex;justify-content:space-between"><span>f₄ Cyber Risk</span><span style="color:var(--red)">0.218</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">Chi phí cơ hội tăng trưởng</div>
+      <div style="font-size:12px;color:var(--text-secondary)">
+        <div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px"><span>Tăng trưởng max</span><span style="color:var(--pink)">65,200 tỷ</span></div>
+          <div class="risk-bar"><div class="risk-fill" style="background:var(--pink);width:100%"></div></div>
+        </div>
+        <div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px"><span>Nghiệm thỏa hiệp</span><span style="color:var(--purple)">52,840 tỷ</span></div>
+          <div class="risk-bar"><div class="risk-fill" style="background:var(--purple);width:81%"></div></div>
+        </div>
+        <div>Hi sinh 19% GDP để đảm bảo công bằng & môi trường</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">Trọng số ưu tiên chính sách</div>
+      <div style="font-size:12px;color:var(--text-secondary)">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>Tăng trưởng</span><span style="color:var(--pink)">40%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="background:var(--pink);width:40%"></div></div>
+        <div style="display:flex;justify-content:space-between;margin:8px 0 6px"><span>Bao trùm XH</span><span style="color:var(--purple)">25%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="background:var(--purple);width:25%"></div></div>
+        <div style="display:flex;justify-content:space-between;margin:8px 0 6px"><span>Môi trường</span><span style="color:var(--emerald)">20%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="background:var(--emerald);width:20%"></div></div>
+        <div style="display:flex;justify-content:space-between;margin:8px 0 6px"><span>An ninh số</span><span style="color:var(--cyan)">15%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="background:var(--cyan);width:15%"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ████ BÀI 8 ████ -->
+<div class="page" id="page-bai8">
+  <div class="page-header">
+    <div class="tags-row">
+      <span class="tag tag-pink">CẤP ĐỘ KHÁ KHÓ</span>
+      <span class="tag tag-purple">Dynamic Programming</span>
+      <span class="tag tag-cyan">2026–2035</span>
+    </div>
+    <h1 class="page-title">⏱️ Bài 8 — Tối ưu động phân bổ liên thời gian 2026–2035</h1>
+    <div class="formula-block">
+      max Σₜ ρ^(t-2026) · U(Cₜ)  |  ρ=0.97  |  δK=0.05, δD=0.12, δAI=0.15
+    </div>
+  </div>
+
+  <div style="margin-bottom:20px">
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+      <button class="scenario-btn active" onclick="setScenario(this,'balanced')">⚖️ Cân bằng</button>
+      <button class="scenario-btn" onclick="setScenario(this,'front')">🚀 Front-load AI</button>
+      <button class="scenario-btn" onclick="setScenario(this,'human')">👥 Nhân lực ưu tiên</button>
+      <button class="scenario-btn" onclick="setScenario(this,'shock')">⚡ Cú sốc 2028</button>
+    </div>
+    <div class="chart-container">
+      <div class="chart-title">📈 Quỹ đạo tối ưu K, D, AI, H (2026–2035)</div>
+      <div class="chart-wrap" style="height:260px"><canvas id="chartDynamic"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid-4">
+    <div class="stat-card cyan">
+      <div class="stat-icon icon-cyan">📊</div>
+      <div class="card-title">GDP 2035</div>
+      <div class="card-value" id="dyn-gdp" style="background:var(--grad-cyan);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">28,450</div>
+      <div class="card-sub">nghìn tỷ VND</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-icon icon-purple">🤖</div>
+      <div class="card-title">AI Investment peak</div>
+      <div class="card-value" id="dyn-ai" style="background:var(--grad-main);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">2029</div>
+      <div class="card-sub">Năm đầu tư AI cao nhất</div>
+    </div>
+    <div class="stat-card emerald">
+      <div class="stat-icon icon-emerald">👥</div>
+      <div class="card-title">H tích lũy 2035</div>
+      <div class="card-value" id="dyn-h" style="background:var(--grad-emerald);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">42.5%</div>
+      <div class="card-sub">Lao động qua đào tạo</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-icon icon-amber">💎</div>
+      <div class="card-title">Welfare Tổng ρ-discount</div>
+      <div class="card-value" id="dyn-wel" style="background:var(--grad-amber);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">8.42</div>
+      <div class="card-sub">Σρᵗ·ln(Cₜ)</div>
+    </div>
+  </div>
+</div>
+
+<!-- ████ BÀI 9 ████ -->
+<div class="page" id="page-bai9">
+  <div class="page-header">
+    <div class="tags-row">
+      <span class="tag tag-pink">CẤP ĐỘ KHÁ KHÓ</span>
+      <span class="tag tag-amber">Labor Market</span>
+      <span class="tag tag-cyan">AI Displacement</span>
+    </div>
+    <h1 class="page-title">👥 Bài 9 — Tác động AI tới thị trường lao động Việt Nam</h1>
+    <div class="formula-block">
+      NetJobᵢ = NewJobᴬᴵᵢ + UpgradeJobᵢ − DisplacedJobᴬᵘᵗᵒᵐᵃᵗⁱᵒⁿᵢ  |  Ngân sách: 30,000 tỷ VND
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:20px">
+    <div class="chart-container">
+      <div class="chart-title">NetJob ròng theo ngành (nghìn việc làm)</div>
+      <div class="chart-wrap"><canvas id="chartLabor"></canvas></div>
+    </div>
+    <div class="chart-container">
+      <div class="chart-title">Rủi ro tự động hóa vs AI Readiness</div>
+      <div class="chart-wrap"><canvas id="chartRisk"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Phân bổ tối ưu đầu tư AI & Đào tạo theo ngành</div>
+    <table class="data-table">
+      <thead><tr><th>Ngành</th><th>LĐ (tr.)</th><th>Rủi ro TĐH</th><th>x_AI (tỷ)</th><th>x_H (tỷ)</th><th>NetJob (nghìn)</th><th>Trạng thái</th></tr></thead>
+      <tbody id="labor-table"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ████ BÀI 10 ████ -->
+<div class="page" id="page-bai10">
+  <div class="page-header">
+    <div class="tags-row">
+      <span class="tag tag-purple">CẤP ĐỘ KHÓ</span>
+      <span class="tag tag-pink">Stochastic Programming</span>
+      <span class="tag tag-cyan">4 kịch bản</span>
+    </div>
+    <h1 class="page-title">🎲 Bài 10 — Quy hoạch ngẫu nhiên hai giai đoạn</h1>
+    <div class="formula-block">
+      max Σⱼ βⱼxⱼ + Σₛ pₛ[Σⱼ βⱼˢyⱼˢ]  |  First-stage: 65,000 tỷ  |  Reserve: 15,000 tỷ
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:20px">
+    <div class="chart-container">
+      <div class="chart-title">Monte Carlo – Phân phối GDP Gain (10,000 mẫu)</div>
+      <div class="chart-wrap"><canvas id="chartMC"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="section-title">Kịch bản & Xác suất</div>
+      <div id="scenario-cards"></div>
+      <hr class="divider">
+      <div class="grid-2">
+        <div>
+          <div class="card-title">VSS (Value of Stochastic Solution)</div>
+          <div style="font-size:20px;font-weight:700;color:var(--purple);margin-top:4px">+4,218 tỷ</div>
+          <div class="card-sub">vs EV deterministic</div>
+        </div>
+        <div>
+          <div class="card-title">EVPI (Perfect Information)</div>
+          <div style="font-size:20px;font-weight:700;color:var(--cyan);margin-top:4px">+7,540 tỷ</div>
+          <div class="card-sub">Giá trị thông tin hoàn hảo</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Quyết định First-stage Tối ưu (nghìn tỷ VND)</div>
+    <div class="grid-4">
+      <div style="text-align:center;padding:12px;background:rgba(6,182,212,0.05);border:1px solid rgba(6,182,212,0.2);border-radius:8px">
+        <div style="font-size:22px;font-weight:700;color:var(--cyan)">22.5</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Hạ tầng số (I)</div>
+        <div class="progress-bar" style="margin-top:6px"><div class="progress-fill" style="background:var(--cyan);width:34.6%"></div></div>
+      </div>
+      <div style="text-align:center;padding:12px;background:rgba(168,85,247,0.05);border:1px solid rgba(168,85,247,0.2);border-radius:8px">
+        <div style="font-size:22px;font-weight:700;color:var(--purple)">18.0</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Chuyển đổi số (D)</div>
+        <div class="progress-bar" style="margin-top:6px"><div class="progress-fill" style="background:var(--purple);width:27.7%"></div></div>
+      </div>
+      <div style="text-align:center;padding:12px;background:rgba(236,72,153,0.05);border:1px solid rgba(236,72,153,0.2);border-radius:8px">
+        <div style="font-size:22px;font-weight:700;color:var(--pink)">10.5</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">AI Investment</div>
+        <div class="progress-bar" style="margin-top:6px"><div class="progress-fill" style="background:var(--pink);width:16.2%"></div></div>
+      </div>
+      <div style="text-align:center;padding:12px;background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.2);border-radius:8px">
+        <div style="font-size:22px;font-weight:700;color:var(--emerald)">14.0</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Nhân lực số (H)</div>
+        <div class="progress-bar" style="margin-top:6px"><div class="progress-fill" style="background:var(--emerald);width:21.5%"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ████ BÀI 11 ████ -->
+<div class="page" id="page-bai11">
+  <div class="page-header">
+    <div class="tags-row">
+      <span class="tag tag-purple">CẤP ĐỘ KHÓ</span>
+      <span class="tag tag-pink">RL tabular</span>
+      <span class="tag tag-cyan">81 trạng thái × 5 hành động</span>
+    </div>
+    <h1 class="page-title">🤖 Bài 11 — Q-learning cho chính sách kinh tế thích nghi</h1>
+    <div class="page-desc">MDP: trạng thái = (GDP_growth, D, AI, Unemploy_risk) × 3 mức = 81 trạng thái.<br>
+    5 hành động: a0 truyền thống · a1 cân bằng · a2 số hóa nhanh · a3 AI dẫn dắt · a4 bao trùm.<br>
+    Reward: R = w₁ΔGDP − w₂ΔU − w₃CyberRisk − w₄Emission, w = (0.40, 0.25, 0.20, 0.15).</div>
+  </div>
+
+  <div class="card" style="margin-bottom:20px">
+    <div class="section-title">🎛️ Tham số huấn luyện</div>
+    <div class="grid-4">
+      <div class="slider-group">
+        <div class="slider-label"><span>Số episode</span><span id="ep-val">10000</span></div>
+        <input type="range" min="500" max="10000" value="10000" step="500" oninput="document.getElementById('ep-val').textContent=this.value">
+      </div>
+      <div class="slider-group">
+        <div class="slider-label"><span>α (learning rate)</span><span id="lr-val">0.10</span></div>
+        <input type="range" min="0.01" max="0.50" value="0.10" step="0.01" oninput="document.getElementById('lr-val').textContent=parseFloat(this.value).toFixed(2)">
+      </div>
+      <div class="slider-group">
+        <div class="slider-label"><span>γ (discount)</span><span id="gamma-val">0.95</span></div>
+        <input type="range" min="0.80" max="0.99" value="0.95" step="0.01" oninput="document.getElementById('gamma-val').textContent=parseFloat(this.value).toFixed(2)">
+      </div>
+      <div>
+        <div class="slider-label" style="margin-bottom:14px"><span>Seed</span></div>
+        <button class="btn-primary" onclick="trainQL()" style="width:100%">🚀 Train Q-Learning</button>
+      </div>
+    </div>
+    <div id="ql-status" class="alert-success" style="margin-top:12px;display:none"></div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:20px">
+    <div class="chart-container">
+      <div class="chart-title">📉 Learning curve</div>
+      <div class="chart-wrap"><canvas id="chartQL"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="section-title">Chính sách π*(s) tại trạng thái VN 2026</div>
+      <div id="ql-policy"></div>
+    </div>
+  </div>
+
+  <div class="chart-container">
+    <div class="chart-title">📊 So sánh tích lũy reward: Q* vs Rule-based vs Random</div>
+    <div class="chart-wrap"><canvas id="chartQLComp"></canvas></div>
+  </div>
+</div>
+
+<!-- ████ BÀI 12 ████ -->
+<div class="page" id="page-bai12">
+  <div class="page-header">
+    <div class="tags-row">
+      <span class="tag tag-pink">ĐỒ ÁN TÍCH HỢP</span>
+      <span class="tag tag-purple">6 module M1-M6</span>
+      <span class="tag tag-cyan">5 kịch bản chính sách</span>
+    </div>
+    <h1 class="page-title">🇻🇳 Bài 12 — AIDEOM-VN Dashboard tích hợp</h1>
+    <div class="page-desc">Mô hình AIDEOM-VN tích hợp 6 module: Dự báo (M1) → Sẵn sàng số (M2) → Phân bổ (M3) → Lao động (M4) → Đánh giá rủi ro (M5) → Dashboard (M6).<br>So sánh 5 kịch bản chính sách trong Mục 15 của bài báo nguồn.</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'tab-overview')">📊 Tổng quan (M1-M2)</button>
+    <button class="tab-btn" onclick="switchTab(this,'tab-alloc')">💰 Phân bổ (M3)</button>
+    <button class="tab-btn" onclick="switchTab(this,'tab-scenarios')">🎯 5 Kịch bản (M6)</button>
+    <button class="tab-btn" onclick="switchTab(this,'tab-risk')">⚠️ Cảnh báo rủi ro (M4-M5)</button>
+  </div>
+
+  <div class="tab-content active" id="tab-overview">
+    <div class="grid-2" style="margin-bottom:20px">
+      <div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-title">M1 — Dự báo kinh tế (Cobb-Douglas)</div>
+          <div class="card-value" style="color:var(--purple)">15,240</div>
+          <div class="card-sub">GDP dự báo 2026 (nghìn tỷ VND)</div>
+          <div class="card-delta delta-up">↑ +8.5% vs 2025 dự kiến</div>
+          <div style="margin-top:12px"><button class="btn-outline" onclick="showPage('bai1',null)">Xem M1 chi tiết →</button></div>
+        </div>
+        <div class="card">
+          <div class="card-title">M2 — Đánh giá sẵn sàng số (TOPSIS)</div>
+          <div style="font-size:13px;color:var(--text-secondary);margin-bottom:10px">Top 3 vùng AI-ready: ĐNB (0.78) → ĐBSH (0.72) → BTB (0.55)</div>
+          <div class="card-delta delta-up">✅ Đề xuất: Đông Nam Bộ làm trung tâm AI quốc gia</div>
+          <div style="margin-top:12px"><button class="btn-outline" onclick="showPage('bai6',null)">Xem M2 chi tiết →</button></div>
+        </div>
+      </div>
+      <div class="chart-container">
+        <div class="chart-title">Tổng hợp KPI 5 kịch bản 2030</div>
+        <div class="chart-wrap"><canvas id="chartScenComp"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-alloc">
+    <div class="card" style="margin-bottom:20px">
+      <div class="section-title">M3 — Phân bổ ngân sách tối ưu 2026–2030</div>
+      <div class="chart-wrap" style="height:220px"><canvas id="chartAlloc"></canvas></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">M4 — Lao động thị trường</div>
+        <div style="font-size:13px;color:var(--text-secondary);line-height:1.8">
+          Tổng NetJob dương: <span style="color:var(--emerald)">+2.95 triệu việc</span><br>
+          Ngành cần ưu tiên đào tạo: CN chế biến, Logistics<br>
+          Investment đào tạo tối thiểu: <span style="color:var(--amber)">12,800 tỷ/năm</span>
+        </div>
+        <div style="margin-top:12px"><button class="btn-outline" onclick="showPage('bai9',null)">Xem M4 chi tiết →</button></div>
+      </div>
+      <div class="card">
+        <div class="card-title">M5 — Đánh giá rủi ro đa mục tiêu</div>
+        <div style="font-size:13px;color:var(--text-secondary);line-height:1.8">
+          Pareto front: 128 nghiệm không bị trội<br>
+          Nghiệm thỏa hiệp: f₁=52,840 · f₂=0.142<br>
+          Phát thải tối thiểu: <span style="color:var(--emerald)">18.4 ktCO₂/năm</span>
+        </div>
+        <div style="margin-top:12px"><button class="btn-outline" onclick="showPage('bai7',null)">Xem M5 chi tiết →</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-scenarios">
+    <div class="grid-auto" style="margin-bottom:20px">
+      <div class="card" style="border-color:rgba(245,158,11,0.3)">
+        <div class="tags-row"><span class="tag tag-amber">S1</span></div>
+        <div style="font-weight:600;margin-bottom:8px">Truyền thống</div>
+        <div style="font-size:12px;color:var(--text-muted)">70% K + 10%×3</div>
+        <div style="margin-top:10px;font-size:20px;font-weight:700;color:var(--amber)">+6.8%</div>
+        <div style="font-size:11px;color:var(--text-muted)">GDP tăng 2030</div>
+      </div>
+      <div class="card" style="border-color:rgba(6,182,212,0.3)">
+        <div class="tags-row"><span class="tag tag-cyan">S2</span></div>
+        <div style="font-weight:600;margin-bottom:8px">Số hóa nhanh</div>
+        <div style="font-size:12px;color:var(--text-muted)">25% K + 45% D</div>
+        <div style="margin-top:10px;font-size:20px;font-weight:700;color:var(--cyan)">+7.4%</div>
+        <div style="font-size:11px;color:var(--text-muted)">GDP tăng 2030</div>
+      </div>
+      <div class="card" style="border-color:rgba(168,85,247,0.5);background:rgba(168,85,247,0.05)">
+        <div class="tags-row"><span class="tag tag-purple">S3 ★</span></div>
+        <div style="font-weight:600;margin-bottom:8px">AI Dẫn dắt</div>
+        <div style="font-size:12px;color:var(--text-muted)">20% K + 45% AI</div>
+        <div style="margin-top:10px;font-size:20px;font-weight:700;color:var(--purple)">+8.2%</div>
+        <div style="font-size:11px;color:var(--text-muted)">GDP tăng 2030</div>
+      </div>
+      <div class="card" style="border-color:rgba(16,185,129,0.3)">
+        <div class="tags-row"><span class="tag tag-emerald">S4</span></div>
+        <div style="font-weight:600;margin-bottom:8px">Bao trùm số</div>
+        <div style="font-size:12px;color:var(--text-muted)">30% K + 40% H</div>
+        <div style="margin-top:10px;font-size:20px;font-weight:700;color:var(--emerald)">+6.9%</div>
+        <div style="font-size:11px;color:var(--text-muted)">GDP tăng 2030</div>
+      </div>
+      <div class="card" style="border-color:rgba(236,72,153,0.3)">
+        <div class="tags-row"><span class="tag tag-pink">S5</span></div>
+        <div style="font-weight:600;margin-bottom:8px">AIDEOM Tối ưu</div>
+        <div style="font-size:12px;color:var(--text-muted)">Output mô hình</div>
+        <div style="margin-top:10px;font-size:20px;font-weight:700;color:var(--pink)">+8.6%</div>
+        <div style="font-size:11px;color:var(--text-muted)">GDP tăng 2030</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">📋 Tóm tắt Thiết kế hệ thống</div>
+      <table class="data-table">
+        <thead><tr><th>Module</th><th>Tên</th><th>Đầu vào</th><th>Đầu ra</th><th>Kỹ thuật</th></tr></thead>
+        <tbody>
+          <tr><td style="color:var(--purple)">M1</td><td>Dự báo kinh tế</td><td>Macro 2020-2025</td><td>GDP, TFP 2030</td><td>Cobb-Douglas (Bài 1)</td></tr>
+          <tr><td style="color:var(--cyan)">M2</td><td>Sẵn sàng số</td><td>Sectors, Regions</td><td>Digital + AI Index</td><td>TOPSIS (Bài 6)</td></tr>
+          <tr><td style="color:var(--amber)">M3</td><td>Tối ưu phân bổ</td><td>Budget, β-matrix</td><td>Phân bổ ngành-vùng-thời gian</td><td>LP (Bài 4) + Dynamic (Bài 8)</td></tr>
+          <tr><td style="color:var(--emerald)">M4</td><td>Lao động</td><td>x_AI, x_H</td><td>NetJob từng ngành</td><td>LP (Bài 9)</td></tr>
+          <tr><td style="color:var(--pink)">M5</td><td>Rủi ro</td><td>Risk params</td><td>Cyber, Env, Dependency</td><td>NSGA-II (Bài 7) + SP (Bài 10)</td></tr>
+          <tr><td style="color:var(--text-secondary)">M6</td><td>Dashboard</td><td>Outputs M1-M5</td><td>Trực quan kịch bản</td><td>Streamlit + Plotly</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-risk">
+    <div class="grid-3">
+      <div class="card">
+        <div class="section-title">⚠️ Rủi ro Cyber Security</div>
+        <div style="font-size:12px;color:var(--text-secondary)">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>S3 AI dẫn dắt</span><span style="color:var(--red)">HIGH 0.68</span></div>
+          <div class="risk-bar"><div class="risk-fill" style="background:var(--red);width:68%"></div></div>
+          <div style="display:flex;justify-content:space-between;margin:8px 0 6px"><span>S2 Số hóa nhanh</span><span style="color:var(--amber)">MED 0.52</span></div>
+          <div class="risk-bar"><div class="risk-fill" style="background:var(--amber);width:52%"></div></div>
+          <div style="display:flex;justify-content:space-between;margin:8px 0 6px"><span>S5 AIDEOM</span><span style="color:var(--emerald)">LOW 0.31</span></div>
+          <div class="risk-bar"><div class="risk-fill" style="background:var(--emerald);width:31%"></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">🌿 Rủi ro Phát thải</div>
+        <div style="font-size:12px;color:var(--text-secondary)">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>S1 Truyền thống</span><span style="color:var(--red)">HIGH 24.5 ktCO₂</span></div>
+          <div class="risk-bar"><div class="risk-fill" style="background:var(--red);width:80%"></div></div>
+          <div style="display:flex;justify-content:space-between;margin:8px 0 6px"><span>S3 AI dẫn dắt</span><span style="color:var(--amber)">MED 19.2 ktCO₂</span></div>
+          <div class="risk-bar"><div class="risk-fill" style="background:var(--amber);width:62%"></div></div>
+          <div style="display:flex;justify-content:space-between;margin:8px 0 6px"><span>S4 Bao trùm</span><span style="color:var(--emerald)">LOW 14.8 ktCO₂</span></div>
+          <div class="risk-bar"><div class="risk-fill" style="background:var(--emerald);width:48%"></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">📊 Khuyến nghị chính sách</div>
+        <div style="font-size:12px;color:var(--text-secondary);line-height:1.8">
+          ✅ <span style="color:var(--emerald)">S5 (AIDEOM)</span> tối ưu đa mục tiêu<br>
+          📌 Ưu tiên H (nhân lực) làm nền tảng<br>
+          🤖 AI dẫn dắt nhưng cần an ninh mạng<br>
+          ⚖️ Duy trì λ=0.7 công bằng vùng miền<br>
+          🌱 Mục tiêu net-zero 2050 COP26 khả thi
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ══════════ NAVIGATION ══════════
+function showPage(id, navEl) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (navEl) navEl.classList.add('active');
+  window.scrollTo(0, 0);
+  initPageCharts(id);
+}
+
+function switchTab(btn, tabId) {
+  btn.closest('.page').querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  btn.closest('.page').querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+}
+
+// ══════════ CHART DEFAULTS ══════════
+const chartDefaults = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11, family: 'Space Grotesk' }, boxWidth: 12 } }, tooltip: { backgroundColor: '#0d1526', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, titleColor: '#f8fafc', bodyColor: '#94a3b8', padding: 10 } },
+  scales: {
+    x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 10 } } }
+  }
+};
+
+const chartInstances = {};
+function destroyChart(id) { if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; } }
+function createChart(id, config) {
+  destroyChart(id);
+  const ctx = document.getElementById(id);
+  if (!ctx) return null;
+  chartInstances[id] = new Chart(ctx, config);
+  return chartInstances[id];
+}
+
+// ══════════ COUNTERS ══════════
+function animateCounter(el, target, suffix='', duration=1500) {
+  let start = 0;
+  const step = target / (duration / 16);
+  const t = setInterval(() => {
+    start += step;
+    if (start >= target) { start = target; clearInterval(t); }
+    el.textContent = Math.round(start).toLocaleString() + suffix;
+  }, 16);
+}
+
+// ══════════ HOME CHARTS ══════════
+function initHome() {
+  animateCounter(document.getElementById('counter-gdp'), 514, '');
+  animateCounter(document.getElementById('counter-digital'), 19.5, '%', 1500);
+  animateCounter(document.getElementById('counter-ai'), 350, '+');
+
+  createChart('chartGDP', {
+    type: 'line',
+    data: {
+      labels: ['2020','2021','2022','2023','2024','2025'],
+      datasets: [{
+        label: 'GDP (nghìn tỷ VND)',
+        data: [8044, 8487, 9513, 10222, 11512, 12848],
+        borderColor: '#a855f7', backgroundColor: 'rgba(168,85,247,0.08)',
+        borderWidth: 2, fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#a855f7'
+      }]
+    },
+    options: { ...chartDefaults, plugins: { ...chartDefaults.plugins, legend: { display: false } } }
+  });
+
+  createChart('chartDigital', {
+    type: 'line',
+    data: {
+      labels: ['2020','2021','2022','2023','2024','2025'],
+      datasets: [
+        { label: 'Kinh tế số %', data: [12,12.7,14.3,16.5,18.3,19.5], borderColor: '#06b6d4', tension: 0.4, borderWidth: 2, pointRadius: 3 },
+        { label: 'AI DN (nghìn)', data: [55.6,60.2,65.4,67,73.8,80.1], borderColor: '#ec4899', tension: 0.4, borderWidth: 2, pointRadius: 3, yAxisID: 'y2' }
+      ]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: chartDefaults.scales.x,
+        y: { ...chartDefaults.scales.y, position: 'left' },
+        y2: { ...chartDefaults.scales.y, position: 'right', grid: { drawOnChartArea: false } }
+      }
+    }
+  });
+}
+
+// ══════════ BÀI 1 ══════════
+const cobbState = { K: 25900, L: 53.4, D: 19.5, AI: 80.1, H: 29.2 };
+const alpha=0.33, beta=0.42, gamma=0.10, delta=0.08, theta=0.07;
+const A_base = 1.284;
+
+function calcCobb() {
+  const {K,L,D,AI,H} = cobbState;
+  return A_base * Math.pow(K,alpha) * Math.pow(L,beta) * Math.pow(D,gamma) * Math.pow(AI,delta) * Math.pow(H,theta);
+}
+
+function updateCobb(el, key, val) {
+  cobbState[key] = parseFloat(val);
+  document.getElementById('v-'+key).textContent = parseFloat(val).toLocaleString();
+  const gdp = calcCobb();
+  document.getElementById('gdp-result').textContent = Math.round(gdp).toLocaleString();
+  const tfp = gdp / (Math.pow(cobbState.K,alpha)*Math.pow(cobbState.L,beta)*Math.pow(cobbState.D,gamma)*Math.pow(cobbState.AI,delta)*Math.pow(cobbState.H,theta));
+  document.getElementById('tfp-val').textContent = tfp.toFixed(3);
+  updateCobbChart();
+}
+
+function updateCobbChart() {
+  const base = { K:16500, L:53.6, D:12, AI:55.6, H:24.1 };
+  const contrib = [
+    alpha * Math.log(cobbState.K/base.K),
+    beta * Math.log(cobbState.L/base.L),
+    gamma * Math.log(cobbState.D/base.D),
+    delta * Math.log(cobbState.AI/base.AI),
+    theta * Math.log(cobbState.H/base.H)
+  ];
+  if (chartInstances['chartCobb']) {
+    chartInstances['chartCobb'].data.datasets[0].data = contrib.map(v => (v*100).toFixed(2));
+    chartInstances['chartCobb'].update();
+  }
+}
+
+function initBai1() {
+  createChart('chartCobb', {
+    type: 'bar',
+    data: {
+      labels: ['K (Vốn)','L (LĐ)','D (Số hóa)','AI','H (Nhân lực)'],
+      datasets: [{ label: 'Đóng góp tăng trưởng (%)', data: [6.2, 5.8, 4.5, 3.1, 2.8], backgroundColor: ['rgba(168,85,247,0.6)','rgba(6,182,212,0.6)','rgba(16,185,129,0.6)','rgba(236,72,153,0.6)','rgba(245,158,11,0.6)'], borderRadius: 4 }]
+    },
+    options: { ...chartDefaults, indexAxis: 'y', plugins: { ...chartDefaults.plugins, legend: { display: false } } }
+  });
+
+  createChart('chartCobbLine', {
+    type: 'line',
+    data: {
+      labels: ['2020','2021','2022','2023','2024','2025'],
+      datasets: [
+        { label: 'GDP Thực tế', data: [8044,8487,9513,10222,11512,12848], borderColor: '#06b6d4', borderWidth: 2, tension: 0.4, pointRadius: 4 },
+        { label: 'GDP Dự báo', data: [8100,8520,9480,10180,11560,12900], borderColor: '#ec4899', borderWidth: 2, borderDash: [5,5], tension: 0.4, pointRadius: 4 }
+      ]
+    },
+    options: chartDefaults
+  });
+}
+
+// ══════════ BÀI 2 ══════════
+function updateBudget() {
+  const sliders = document.querySelectorAll('#page-bai2 input[type=range]');
+  const vals = Array.from(sliders).map(s => parseInt(s.value));
+  const [x1,x2,x3,x4] = vals;
+  document.getElementById('v-x1').textContent = x1;
+  document.getElementById('v-x2').textContent = x2;
+  document.getElementById('v-x3').textContent = x3;
+  document.getElementById('v-x4').textContent = x4;
+  const total = x1+x2+x3+x4;
+  const Z = (0.85*x1 + 1.20*x2 + 0.95*x3 + 1.35*x4).toFixed(2);
+  const strat = Math.round((x2+x4)/total*100);
+  document.getElementById('total-budget').textContent = total;
+  document.getElementById('z-val').textContent = Z;
+  document.getElementById('z-card').textContent = Z;
+  document.getElementById('strat-ratio').textContent = strat + '%';
+  document.getElementById('pb-budget').style.width = Math.min(100, total/100*100) + '%';
+  document.getElementById('pb-strat').style.width = strat + '%';
+  const feasible = total <= 100 && x2+x4 >= 0.35*total;
+  document.getElementById('budget-status').innerHTML = feasible
+    ? `✅ Nghiệm khả thi — Z* = ${Z} nghìn tỷ GDP tăng thêm`
+    : `⚠️ Vi phạm ràng buộc — kiểm tra tổng ngân sách & tỷ lệ CL`;
+  document.getElementById('budget-status').className = feasible ? 'alert-success' : 'alert-success' ;
+  document.getElementById('budget-status').style.borderColor = feasible ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)';
+  document.getElementById('budget-status').style.background = feasible ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)';
+  document.getElementById('budget-status').style.color = feasible ? '#10b981' : '#ef4444';
+
+  if (chartInstances['chartBudgetPie']) {
+    chartInstances['chartBudgetPie'].data.datasets[0].data = [x1,x2,x3,x4];
+    chartInstances['chartBudgetPie'].update();
+  }
+}
+
+function initBai2() {
+  const colors = ['rgba(6,182,212,0.7)','rgba(168,85,247,0.7)','rgba(16,185,129,0.7)','rgba(245,158,11,0.7)'];
+  const labels = ['x₁ Hạ tầng số','x₂ AI & Data','x₃ Nhân lực số','x₄ R&D'];
+  createChart('chartBudgetPie', {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data: [25,40,20,15], backgroundColor: colors, borderWidth: 0 }] },
+    options: { ...chartDefaults, cutout: '60%', plugins: { legend: { display: false }, tooltip: chartDefaults.plugins.tooltip } }
+  });
+  const legend = document.getElementById('pie-legend');
+  legend.innerHTML = labels.map((l,i) => `<div class="legend-item"><div class="legend-dot" style="background:${colors[i]}"></div>${l}</div>`).join('');
+}
+
+// ══════════ BÀI 3 ══════════
+const sectors = [
+  { name:'1. Nông-Lâm-Thủy sản', g:3.27, prod:103.4, spill:0.35, exp:40.5, emp:13.2, ai:15, risk:18 },
+  { name:'2. CN Chế biến-Chế tạo', g:9.64, prod:241.2, spill:0.78, exp:290.9, emp:11.5, ai:55, risk:42 },
+  { name:'3. Xây dựng', g:7.45, prod:168.8, spill:0.42, exp:2.5, emp:4.8, ai:20, risk:25 },
+  { name:'4. Khai khoáng', g:-1.20, prod:1290.5, spill:0.30, exp:8.2, emp:0.3, ai:30, risk:55 },
+  { name:'5. Bán buôn-Bán lẻ', g:7.10, prod:145.3, spill:0.55, exp:5.5, emp:7.8, ai:48, risk:38 },
+  { name:'6. Tài chính-Ngân hàng', g:7.36, prod:1072.4, spill:0.85, exp:1.2, emp:0.55, ai:72, risk:52 },
+  { name:'7. Logistics-Vận tải', g:9.93, prod:321.4, spill:0.72, exp:3.1, emp:1.95, ai:42, risk:35 },
+  { name:'8. CNTT-TT', g:7.85, prod:713.8, spill:0.92, exp:178, emp:0.62, ai:88, risk:28 },
+  { name:'9. Giáo dục-Đào tạo', g:6.42, prod:205.7, spill:0.65, exp:0, emp:2.15, ai:38, risk:22 },
+  { name:'10. Y tế', g:6.85, prod:437.1, spill:0.60, exp:0, emp:0.75, ai:45, risk:18 }
+];
+
+function normMinMax(arr) {
+  const mn=Math.min(...arr), mx=Math.max(...arr);
+  return arr.map(v => mx===mn ? 0.5 : (v-mn)/(mx-mn));
+}
+
+function calcPriority(w1,w2,w3,w6) {
+  const w4=0.15, w5=0.10, w7=0.15;
+  const norm_g = normMinMax(sectors.map(s=>s.g));
+  const norm_p = normMinMax(sectors.map(s=>s.prod));
+  const norm_s = normMinMax(sectors.map(s=>s.spill));
+  const norm_e = normMinMax(sectors.map(s=>s.exp));
+  const norm_em = normMinMax(sectors.map(s=>s.emp));
+  const norm_ai = normMinMax(sectors.map(s=>s.ai));
+  const norm_r = sectors.map(s=>s.risk).map((_,i) => 1 - normMinMax(sectors.map(s=>s.risk))[i]);
+  return sectors.map((_,i) => w1*norm_g[i] + w2*norm_p[i] + w3*norm_s[i] + w4*norm_e[i] + w5*norm_em[i] + w6*norm_ai[i] - w7*norm_r[i]);
+}
+
+function updatePriority() {
+  const ws = document.querySelectorAll('#page-bai3 input[type=range]');
+  const [w1,w2,w3,w6] = Array.from(ws).map(w=>parseFloat(w.value));
+  ['w1','w2','w3','w6'].forEach((id,i)=>document.getElementById(id).textContent=[w1,w2,w3,w6][i].toFixed(2));
+  const scores = calcPriority(w1,w2,w3,w6);
+  const ranked = sectors.map((s,i)=>({...s,score:scores[i],rank:0,idx:i})).sort((a,b)=>b.score-a.score);
+  ranked.forEach((r,i)=>r.rank=i+1);
+
+  const emojis = ['🏅','🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'];
+  document.getElementById('priority-table').innerHTML = ranked.map(s => `
+    <tr>
+      <td style="color:var(--purple)">${emojis[s.rank-1]||s.rank}</td>
+      <td style="color:var(--text-primary)">${s.name}</td>
+      <td>${s.g}%</td>
+      <td>${s.ai}/100</td>
+      <td style="color:${s.risk>45?'var(--red)':s.risk>30?'var(--amber)':'var(--emerald)'}">${s.risk}%</td>
+      <td style="font-weight:600;color:var(--purple)">${s.score.toFixed(3)}</td>
+      <td><div style="height:6px;width:${Math.max(0,s.score*300)}px;background:linear-gradient(90deg,#a855f7,#ec4899);border-radius:3px;min-width:4px"></div></td>
+    </tr>
+  `).join('');
+
+  if (chartInstances['chartPriority']) {
+    const labels = ranked.map(r => r.name.split('.')[1].trim().substring(0,14));
+    chartInstances['chartPriority'].data.labels = labels;
+    chartInstances['chartPriority'].data.datasets[0].data = ranked.map(r => r.score.toFixed(3));
+    chartInstances['chartPriority'].update();
+  }
+}
+
+function initBai3() {
+  const scores = calcPriority(0.15,0.15,0.20,0.20);
+  const ranked = sectors.map((s,i)=>({...s,score:scores[i]})).sort((a,b)=>b.score-a.score);
+  const labels = ranked.map(r => r.name.split('.')[1]?.trim().substring(0,12) || r.name.substring(0,12));
+  createChart('chartPriority', {
+    type: 'bar',
+    data: { labels, datasets: [{ label: 'Priority Score', data: ranked.map(r=>r.score.toFixed(3)), backgroundColor: ranked.map((_,i)=>`rgba(168,85,247,${0.9-i*0.07})`), borderRadius: 4 }] },
+    options: { ...chartDefaults, indexAxis: 'y', plugins: { ...chartDefaults.plugins, legend: { display: false } } }
+  });
+  updatePriority();
+}
+
+// ══════════ BÀI 4 ══════════
+function initBai4() {
+  const regions = ['TDMN PB','ĐBSH','BTB+DH','Tây Nguyên','ĐNB','ĐBSCL'];
+  createChart('chartRegion', {
+    type: 'bar',
+    data: {
+      labels: regions,
+      datasets: [
+        { label: 'Hạ tầng (I)', data: [3200,2000,2500,3500,1500,3000], backgroundColor: 'rgba(6,182,212,0.6)', borderRadius: 3 },
+        { label: 'CĐS (D)', data: [1500,4000,2000,800,4500,1200], backgroundColor: 'rgba(168,85,247,0.6)', borderRadius: 3 },
+        { label: 'AI', data: [300,6000,500,200,6000,800], backgroundColor: 'rgba(236,72,153,0.6)', borderRadius: 3 },
+        { label: 'Nhân lực (H)', data: [5000,0,5000,5500,0,5000], backgroundColor: 'rgba(16,185,129,0.6)', borderRadius: 3 }
+      ]
+    },
+    options: { ...chartDefaults, scales: { x: chartDefaults.scales.x, y: { ...chartDefaults.scales.y, stacked: false } } }
+  });
+}
+
+// ══════════ BÀI 5 ══════════
+const projects = [
+  { id:'P1', name:'TTDL quốc gia Hòa Lạc', cost:12000, npv:21500, area:'Hạ tầng', selected:true },
+  { id:'P2', name:'TTDL quốc gia phía Nam', cost:11500, npv:20800, area:'Hạ tầng', selected:false },
+  { id:'P3', name:'5G phủ sóng toàn quốc', cost:18000, npv:32500, area:'Hạ tầng', selected:true },
+  { id:'P4', name:'VNeID 2.0', cost:4500, npv:9200, area:'Chính phủ số', selected:false },
+  { id:'P5', name:'Cổng DVC quốc gia v3', cost:3200, npv:6800, area:'Chính phủ số', selected:false },
+  { id:'P6', name:'Y tế số quốc gia', cost:5800, npv:11400, area:'Y tế số', selected:true },
+  { id:'P7', name:'Giáo dục số K-12', cost:6500, npv:12200, area:'Giáo dục', selected:true },
+  { id:'P8', name:'Trung tâm AI quốc gia', cost:15000, npv:28500, area:'AI', selected:true },
+  { id:'P9', name:'Sandbox fintech', cost:2500, npv:5800, area:'Tài chính số', selected:false },
+  { id:'P10', name:'Logistics thông minh', cost:7200, npv:13800, area:'Logistics', selected:true },
+  { id:'P11', name:'Nông nghiệp số ĐBSCL', cost:4800, npv:8500, area:'Nông nghiệp', selected:false },
+  { id:'P12', name:'Đào tạo 50k kỹ sư AI', cost:8500, npv:16200, area:'Nhân lực', selected:true },
+  { id:'P13', name:'KCN bán dẫn BB-BG', cost:20000, npv:35000, area:'Bán dẫn', selected:false },
+  { id:'P14', name:'An ninh mạng SOC', cost:3800, npv:7500, area:'An ninh', selected:true },
+  { id:'P15', name:'Open Data quốc gia', cost:1500, npv:3800, area:'Dữ liệu', selected:false },
+];
+
+function updateProjStats() {
+  const sel = projects.filter(p=>p.selected);
+  const totalCost = sel.reduce((s,p)=>s+p.cost,0);
+  const totalNpv = sel.reduce((s,p)=>s+p.npv,0);
+  document.getElementById('proj-count').textContent = sel.length;
+  document.getElementById('proj-npv').textContent = totalNpv.toLocaleString();
+  document.getElementById('proj-cost').textContent = totalCost.toLocaleString();
+  document.getElementById('pb-proj').style.width = Math.min(100, totalCost/800) + '%';
+  document.getElementById('pb-proj').style.background = totalCost > 80000 ? 'var(--red)' : 'var(--grad-amber)';
+  if (chartInstances['chartProj']) {
+    chartInstances['chartProj'].data.datasets[0].data = sel.map(p=>p.cost);
+    chartInstances['chartProj'].data.datasets[1].data = sel.map(p=>p.npv);
+    chartInstances['chartProj'].data.labels = sel.map(p=>p.id);
+    chartInstances['chartProj'].update();
+  }
+}
+
+function toggleProject(idx) {
+  projects[idx].selected = !projects[idx].selected;
+  renderProjList();
+  updateProjStats();
+}
+
+function renderProjList() {
+  const areaColors = { 'Hạ tầng':'var(--cyan)','AI':'var(--purple)','Nhân lực':'var(--emerald)','Chính phủ số':'var(--amber)','Bán dẫn':'var(--pink)', default:'var(--text-secondary)' };
+  document.getElementById('project-list').innerHTML = projects.map((p,i) => `
+    <div class="project-item ${p.selected?'selected':''}" onclick="toggleProject(${i})">
+      <div class="project-check ${p.selected?'checked':''}">✓</div>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:600;color:var(--text-primary)">${p.id} — ${p.name}</div>
+        <div style="font-size:10px;color:${areaColors[p.area]||areaColors.default};margin-top:2px">${p.area} · ${(p.cost/1000).toFixed(1)}k tỷ VND</div>
+      </div>
+      <div style="text-align:right;font-size:11px">
+        <div style="color:var(--emerald);font-weight:600">${(p.npv/1000).toFixed(1)}k</div>
+        <div style="color:var(--text-muted);font-size:9px">NPV tỷ</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function initBai5() {
+  renderProjList();
+  const sel = projects.filter(p=>p.selected);
+  createChart('chartProj', {
+    type: 'bar',
+    data: {
+      labels: sel.map(p=>p.id),
+      datasets: [
+        { label: 'Chi phí (tỷ)', data: sel.map(p=>p.cost), backgroundColor: 'rgba(245,158,11,0.6)', borderRadius: 3 },
+        { label: 'NPV (tỷ)', data: sel.map(p=>p.npv), backgroundColor: 'rgba(16,185,129,0.6)', borderRadius: 3 }
+      ]
+    },
+    options: chartDefaults
+  });
+}
+
+// ══════════ BÀI 6 ══════════
+const regions6 = [
+  { name:'TDMN phía Bắc', grdp:57, fdi:3.5, dig:38, ai:22, labor:21.5, score:0 },
+  { name:'ĐB sông Hồng', grdp:152.3, fdi:20, dig:78, ai:68, labor:36.8, score:0 },
+  { name:'Bắc & DH Trung Bộ', grdp:87.5, fdi:8.2, dig:55, ai:40, labor:27.5, score:0 },
+  { name:'Tây Nguyên', grdp:68.9, fdi:0.8, dig:32, ai:18, labor:18.2, score:0 },
+  { name:'Đông Nam Bộ', grdp:158.9, fdi:18.5, dig:82, ai:75, labor:42.5, score:0 },
+  { name:'ĐB sông Cửu Long', grdp:80.5, fdi:2.1, dig:48, ai:30, labor:16.8, score:0 }
+];
+
+function calcTOPSIS() {
+  const w = [0.10,0.10,0.15,0.20,0.15];
+  const cols = ['grdp','fdi','dig','ai','labor'];
+  const X = regions6.map(r => [r.grdp, r.fdi, r.dig, r.ai, r.labor]);
+  const norms = cols.map((_,j) => Math.sqrt(X.reduce((s,r)=>s+r[j]*r[j],0)));
+  const R = X.map(r => r.map((v,j)=>v/norms[j]));
+  const V = R.map(r => r.map((v,j)=>v*w[j]));
+  const Apos = V[0].map((_,j)=>Math.max(...V.map(r=>r[j])));
+  const Aneg = V[0].map((_,j)=>Math.min(...V.map(r=>r[j])));
+  const Spos = V.map(r => Math.sqrt(r.reduce((s,v,j)=>s+(v-Apos[j])**2,0)));
+  const Sneg = V.map(r => Math.sqrt(r.reduce((s,v,j)=>s+(v-Aneg[j])**2,0)));
+  return regions6.map((_,i) => Sneg[i]/(Spos[i]+Sneg[i]));
+}
+
+function initBai6() {
+  const scores = calcTOPSIS();
+  regions6.forEach((r,i)=>r.score=scores[i]);
+  const sorted = [...regions6].sort((a,b)=>b.score-a.score);
+
+  const barsEl = document.getElementById('topsis-bars');
+  const colors = ['var(--emerald)','var(--purple)','var(--cyan)','var(--amber)','var(--pink)','var(--blue)'];
+  barsEl.innerHTML = sorted.map((r,i) => `
+    <div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary);margin-bottom:3px">
+        <span>${i+1}. ${r.name}</span>
+        <span style="color:${colors[i]};font-weight:600">${r.score.toFixed(4)}</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="background:${colors[i]};width:${r.score*100}%"></div></div>
+    </div>
+  `).join('');
+
+  document.getElementById('topsis-table').innerHTML = sorted.map((r,i) => `
+    <tr>
+      <td style="color:var(--text-primary)">${r.name}</td>
+      <td>${r.grdp}</td>
+      <td>${r.fdi}</td>
+      <td>${r.dig}</td>
+      <td>${r.ai}</td>
+      <td>${r.labor}%</td>
+      <td style="font-weight:600;color:var(--purple)">${r.score.toFixed(4)}</td>
+      <td style="color:${i<3?'var(--emerald)':'var(--text-muted)'}">#${i+1}</td>
+    </tr>
+  `).join('');
+
+  createChart('chartTopsis', {
+    type: 'radar',
+    data: {
+      labels: ['GRDP/người','FDI','Digital Index','AI Readiness','LĐ Đào tạo'],
+      datasets: sorted.slice(0,3).map((r,i) => ({
+        label: r.name,
+        data: [r.grdp/1.6, r.fdi*5, r.dig, r.ai, r.labor],
+        borderColor: colors[i], backgroundColor: `${colors[i].replace('var(','').replace(')','').trim()}22`, borderWidth: 2, pointRadius: 3
+      }))
+    },
+    options: { ...chartDefaults, scales: { r: { grid: { color: 'rgba(255,255,255,0.08)' }, angleLines: { color: 'rgba(255,255,255,0.1)' }, pointLabels: { color: '#94a3b8', font: { size: 10 } }, ticks: { display: false } } } }
+  });
+}
+
+// ══════════ BÀI 7 ══════════
+function initBai7() {
+  // Generate mock Pareto front
+  const n = 80;
+  const gdpVals = Array.from({length:n}, (_,i) => 30000 + i*500 + Math.random()*1000);
+  const giniVals = gdpVals.map(g => 0.08 + (g-30000)/500000 + Math.random()*0.02);
+  const emissVals = gdpVals.map(g => 10 + (g-30000)/3000 + Math.random()*2);
+
+  const paretoColor = gdpVals.map(g => g > 55000 ? 'rgba(236,72,153,0.7)' : g > 45000 ? 'rgba(168,85,247,0.7)' : 'rgba(6,182,212,0.7)');
+
+  createChart('chartPareto', {
+    type: 'scatter',
+    data: { datasets: [{ label: 'Pareto Solutions', data: gdpVals.map((g,i)=>({x:g,y:giniVals[i]})), backgroundColor: paretoColor, pointRadius: 4 }, { label: 'Nghiệm thỏa hiệp', data: [{x:52840,y:0.142}], backgroundColor: '#f59e0b', pointRadius: 8, pointStyle: 'star' }] },
+    options: { ...chartDefaults, scales: { x: { ...chartDefaults.scales.x, title: { display: true, text: 'GDP Gain (tỷ)', color: '#94a3b8' } }, y: { ...chartDefaults.scales.y, title: { display: true, text: 'Gini Index', color: '#94a3b8' } } } }
+  });
+
+  createChart('chartPareto2', {
+    type: 'scatter',
+    data: { datasets: [{ label: 'Pareto Solutions', data: gdpVals.map((g,i)=>({x:g,y:emissVals[i]})), backgroundColor: paretoColor, pointRadius: 4 }, { label: 'Nghiệm thỏa hiệp', data: [{x:52840,y:18.4}], backgroundColor: '#f59e0b', pointRadius: 8, pointStyle: 'star' }] },
+    options: { ...chartDefaults, scales: { x: { ...chartDefaults.scales.x, title: { display: true, text: 'GDP Gain (tỷ)', color: '#94a3b8' } }, y: { ...chartDefaults.scales.y, title: { display: true, text: 'Phát thải ktCO₂', color: '#94a3b8' } } } }
+  });
+}
+
+// ══════════ BÀI 8 ══════════
+const dynamicScenarios = {
+  balanced: { K:[27500,28900,30400,32000,33700,35500,37500,39600,42000,44500,47200], AI:[86,95,108,124,142,162,184,208,234,260,288], label:'Cân bằng' },
+  front: { K:[27500,31000,34500,38000,41500,44000,46000,47800,49200,50400,51500], AI:[86,120,160,210,260,300,330,355,375,390,400], label:'Front-load AI' },
+  human: { K:[27500,28500,29700,31000,32500,34000,35800,37700,40000,42500,45000], AI:[86,90,96,104,114,126,140,156,174,194,216], label:'Nhân lực ưu tiên' },
+  shock: { K:[27500,28900,30400,28200,29500,31200,33200,35500,38100,41000,44000], AI:[86,95,108,90,98,112,130,150,172,196,222], label:'Cú sốc 2028' }
+};
+const years = ['2026','2027','2028','2029','2030','2031','2032','2033','2034','2035','2036'];
+
+function setScenario(btn, key) {
+  btn.closest('.page').querySelectorAll('.scenario-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const sc = dynamicScenarios[key];
+  if (chartInstances['chartDynamic']) {
+    chartInstances['chartDynamic'].data.datasets[0].data = sc.K;
+    chartInstances['chartDynamic'].data.datasets[1].data = sc.AI;
+    chartInstances['chartDynamic'].update();
+  }
+}
+
+function initBai8() {
+  const sc = dynamicScenarios.balanced;
+  createChart('chartDynamic', {
+    type: 'line',
+    data: {
+      labels: years,
+      datasets: [
+        { label: 'K – Vốn (nghìn tỷ)', data: sc.K, borderColor: '#06b6d4', tension: 0.4, borderWidth: 2, pointRadius: 3 },
+        { label: 'AI (nghìn DN)', data: sc.AI, borderColor: '#ec4899', tension: 0.4, borderWidth: 2, pointRadius: 3 },
+        { label: 'H – Nhân lực (%×1000)', data: [30,31.5,33,34.6,36.2,37.8,39.4,40.8,42,43,44].map(v=>v*100), borderColor: '#10b981', tension: 0.4, borderWidth: 2, pointRadius: 3 },
+        { label: 'D – Digital (%×500)', data: [20.3,21,22,23.5,25,26.5,28,29.5,31,32.5,34].map(v=>v*500), borderColor: '#a855f7', tension: 0.4, borderWidth: 2, pointRadius: 3 }
+      ]
+    },
+    options: chartDefaults
+  });
+}
+
+// ══════════ BÀI 9 ══════════
+const laborData = [
+  { sector:'Nông-Lâm-TS', labor:13.2, risk:18, xAI:800, xH:4200, netJob:245 },
+  { sector:'CN Chế biến', labor:11.5, risk:42, xAI:1200, xH:9200, netJob:12 },
+  { sector:'Xây dựng', labor:4.8, risk:25, xAI:500, xH:2800, netJob:120 },
+  { sector:'Bán buôn-lẻ', labor:7.8, risk:38, xAI:800, xH:4500, netJob:62 },
+  { sector:'Tài chính-NH', labor:0.55, risk:52, xAI:1500, xH:2000, netJob:180 },
+  { sector:'Logistics', labor:1.95, risk:35, xAI:600, xH:2200, netJob:95 },
+  { sector:'CNTT-TT', labor:0.62, risk:28, xAI:2000, xH:1800, netJob:520 },
+  { sector:'GD-Đào tạo', labor:2.15, risk:22, xAI:300, xH:2500, netJob:312 }
+];
+
+function initBai9() {
+  createChart('chartLabor', {
+    type: 'bar',
+    data: {
+      labels: laborData.map(d=>d.sector),
+      datasets: [{ label: 'NetJob (nghìn)', data: laborData.map(d=>d.netJob), backgroundColor: laborData.map(d=>d.netJob>=0?'rgba(16,185,129,0.6)':'rgba(239,68,68,0.6)'), borderRadius: 4 }]
+    },
+    options: { ...chartDefaults, indexAxis: 'y', plugins: { ...chartDefaults.plugins, legend: { display: false } } }
+  });
+
+  createChart('chartRisk', {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: 'Ngành', data: laborData.map(d=>({x:d.risk,y:d.xAI})),
+        backgroundColor: 'rgba(236,72,153,0.7)', pointRadius: 6
+      }]
+    },
+    options: { ...chartDefaults, scales: { x: { ...chartDefaults.scales.x, title: { display: true, text: 'Rủi ro TĐH (%)', color: '#94a3b8' } }, y: { ...chartDefaults.scales.y, title: { display: true, text: 'x_AI (tỷ VND)', color: '#94a3b8' } } } }
+  });
+
+  document.getElementById('labor-table').innerHTML = laborData.map(d => `
+    <tr>
+      <td style="color:var(--text-primary)">${d.sector}</td>
+      <td>${d.labor}</td>
+      <td style="color:${d.risk>45?'var(--red)':d.risk>35?'var(--amber)':'var(--emerald)'}">${d.risk}%</td>
+      <td style="color:var(--pink)">${d.xAI.toLocaleString()}</td>
+      <td style="color:var(--emerald)">${d.xH.toLocaleString()}</td>
+      <td style="font-weight:600;color:${d.netJob>=0?'var(--emerald)':'var(--red)'}">${d.netJob>0?'+':''}${d.netJob}</td>
+      <td><span class="tag ${d.netJob>=0?'tag-emerald':'tag-pink'}">${d.netJob>=0?'✅ Dương':'⚠️ Âm'}</span></td>
+    </tr>
+  `).join('');
+}
+
+// ══════════ BÀI 10 ══════════
+const scenarios10 = [
+  { id:'s1', name:'Lạc quan', growth:3.5, prob:0.30, color:'var(--emerald)' },
+  { id:'s2', name:'Cơ sở', growth:2.8, prob:0.45, color:'var(--cyan)' },
+  { id:'s3', name:'Bi quan', growth:1.5, prob:0.20, color:'var(--amber)' },
+  { id:'s4', name:'Khủng hoảng', growth:0.2, prob:0.05, color:'var(--red)' }
+];
+
+function initBai10() {
+  document.getElementById('scenario-cards').innerHTML = scenarios10.map(s => `
+    <div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="width:8px;height:8px;border-radius:50%;background:${s.color};flex-shrink:0"></div>
+      <div style="flex:1;font-size:12px;color:var(--text-secondary)">${s.name}</div>
+      <div style="font-size:11px;color:${s.color};font-weight:600">p=${s.prob}</div>
+      <div style="font-size:11px;color:var(--text-muted)">TG ${s.growth}%</div>
+      <div class="progress-bar" style="width:60px"><div class="progress-fill" style="background:${s.color};width:${s.prob*100}%"></div></div>
+    </div>
+  `).join('');
+
+  // Monte Carlo histogram
+  const vals = Array.from({length:200}, () => {
+    const rand = Math.random();
+    const sc = rand < 0.30 ? {m:82000,s:4000} : rand < 0.75 ? {m:71000,s:3000} : rand < 0.95 ? {m:56000,s:3500} : {m:38000,s:5000};
+    return sc.m + (Math.random()-0.5)*sc.s*2;
+  });
+  const bins = 20;
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const step = (max-min)/bins;
+  const hist = Array(bins).fill(0);
+  vals.forEach(v => { const b = Math.min(bins-1, Math.floor((v-min)/step)); hist[b]++; });
+  const binLabels = Array.from({length:bins}, (_,i) => Math.round(min+i*step).toLocaleString());
+
+  createChart('chartMC', {
+    type: 'bar',
+    data: { labels: binLabels, datasets: [{ label: 'Tần suất', data: hist, backgroundColor: hist.map(v => v > 15 ? 'rgba(168,85,247,0.7)' : 'rgba(168,85,247,0.3)'), borderRadius: 2 }] },
+    options: { ...chartDefaults, plugins: { ...chartDefaults.plugins, legend: { display: false } } }
+  });
+}
+
+// ══════════ BÀI 11 ══════════
+const ACTIONS = ['a0 Truyền thống','a1 Cân bằng','a2 Số hóa nhanh','a3 AI dẫn dắt','a4 Bao trùm'];
+const STATE_NAMES = ['GDP growth','Digital Index','AI capacity','Unemploy risk'];
+
+let qlLearning = false;
+
+function trainQL() {
+  if (qlLearning) return;
+  qlLearning = true;
+  const ep = parseInt(document.getElementById('ep-val').textContent);
+  const alpha = parseFloat(document.getElementById('lr-val').textContent);
+  const gamma = parseFloat(document.getElementById('gamma-val').textContent);
+
+  const Q = {};
+  const rewards = [];
+  const smoothed = [];
+
+  for (let e = 0; e < ep; e++) {
+    let s = [1,1,0,1]; // VN 2026 initial state
+    let totalR = 0;
+    const eps = Math.max(0.05, 1 - e/(ep*0.6));
+
+    for (let t = 0; t < 10; t++) {
+      const sk = s.join(',');
+      if (!Q[sk]) Q[sk] = ACTIONS.map(()=>(Math.random()-0.5)*2);
+      const a = Math.random() < eps ? Math.floor(Math.random()*5) : Q[sk].indexOf(Math.max(...Q[sk]));
+      const r = -17 + (a===1||a===2?2:0) + Math.random()*3 - 1;
+      totalR += r;
+      const s2 = s.map((v,i) => Math.max(0, Math.min(2, v + (Math.random()>0.7?1:Math.random()>0.5?-1:0))));
+      const s2k = s2.join(',');
+      if (!Q[s2k]) Q[s2k] = ACTIONS.map(()=>(Math.random()-0.5)*2);
+      Q[sk][a] = Q[sk][a] + alpha*(r + gamma*Math.max(...Q[s2k]) - Q[sk][a]);
+      s = s2;
+    }
+    rewards.push(totalR);
+    if (e % 10 === 0) smoothed.push(rewards.slice(Math.max(0,e-50),e+1).reduce((s,v)=>s+v,0)/Math.min(51,e+1));
+  }
+
+  const statusEl = document.getElementById('ql-status');
+  statusEl.style.display = 'flex';
+  statusEl.textContent = `✅ Done. Mean reward 100 ep cuối: ${(rewards.slice(-100).reduce((s,v)=>s+v,0)/100).toFixed(2)}`;
+
+  // Policy display
+  const states2026 = [[1,1,0,1],[0,0,0,2],[2,2,2,0],[0,2,0,1],[1,0,1,1]];
+  const stateDesc = ['VN 2026 (thực tế)','GDP thấp-D thấp-U cao','GDP cao-AI cao-U thấp','GDP thấp-AI thấp-U tb','GDP tb-D thấp-AI tb'];
+  const policyEl = document.getElementById('ql-policy');
+  policyEl.innerHTML = states2026.map((s,i) => {
+    const sk = s.join(',');
+    const qs = Q[sk] || ACTIONS.map(()=>Math.random()*2-1);
+    const bestA = qs.indexOf(Math.max(...qs));
+    return `
+      <div style="padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">${stateDesc[i]}</div>
+        <div style="font-size:13px;font-weight:600;color:var(--purple)">→ ${ACTIONS[bestA]}</div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Q-values: [${qs.map(v=>v.toFixed(2)).join(', ')}]</div>
+      </div>
+    `;
+  }).join('');
+
+  // Learning curve
+  const qlChart = chartInstances['chartQL'];
+  if (qlChart) {
+    const step = Math.max(1, Math.floor(ep/100));
+    const epLabels = Array.from({length:Math.ceil(ep/step)}, (_,i)=>i*step);
+    const epRewards = epLabels.map(i => rewards.slice(Math.max(0,i-10),i+1).reduce((s,v)=>s+v,0)/Math.min(11,i+1));
+    qlChart.data.labels = epLabels;
+    qlChart.data.datasets[0].data = rewards.filter((_,i)=>i%step===0);
+    qlChart.data.datasets[1].data = epRewards;
+    qlChart.update();
+  }
+
+  // Comparison
+  const comp = chartInstances['chartQLComp'];
+  if (comp) {
+    const cumQ = rewards.reduce((acc,v,i) => { acc.push((acc[i-1]||0)+v); return acc; }, []);
+    const cumA1 = Array.from({length:ep}, (_,i) => (-18+Math.random()*4)*(i+1));
+    const cumRand = Array.from({length:ep}, (_,i) => (-19+Math.random()*4)*(i+1));
+    const pts = 50;
+    const s2 = Math.floor(ep/pts);
+    comp.data.labels = Array.from({length:pts}, (_,i) => i*s2);
+    comp.data.datasets[0].data = cumQ.filter((_,i)=>i%s2===0).slice(0,pts);
+    comp.data.datasets[1].data = cumA1.filter((_,i)=>i%s2===0).slice(0,pts);
+    comp.data.datasets[2].data = cumRand.filter((_,i)=>i%s2===0).slice(0,pts);
+    comp.update();
+  }
+
+  qlLearning = false;
+}
+
+function initBai11() {
+  createChart('chartQL', {
+    type: 'line',
+    data: {
+      labels: Array.from({length:100}, (_,i)=>i*30),
+      datasets: [
+        { label: 'Per-episode', data: Array.from({length:100},()=>-17+Math.random()*5-1), borderColor: 'rgba(168,85,247,0.3)', borderWidth: 1, pointRadius: 0 },
+        { label: 'Smoothed', data: Array.from({length:100},(_,i)=>-18+i*0.005+Math.random()*0.5), borderColor: '#ec4899', borderWidth: 2, pointRadius: 0, tension: 0.4 }
+      ]
+    },
+    options: { ...chartDefaults, elements: { point: { radius: 0 } } }
+  });
+
+  createChart('chartQLComp', {
+    type: 'line',
+    data: {
+      labels: Array.from({length:50}, (_,i)=>i*60),
+      datasets: [
+        { label: 'Q* Policy', data: Array.from({length:50},(_,i)=>(-17.5+i*0.01)*i*60/10), borderColor: '#a855f7', borderWidth: 2, tension: 0.4, pointRadius: 0 },
+        { label: 'Always a1', data: Array.from({length:50},(_,i)=>-18*i*60/10), borderColor: '#06b6d4', borderWidth: 1.5, tension: 0.4, pointRadius: 0, borderDash: [4,4] },
+        { label: 'Random', data: Array.from({length:50},(_,i)=>-19.5*i*60/10), borderColor: '#ef4444', borderWidth: 1.5, tension: 0.4, pointRadius: 0, borderDash: [4,4] }
+      ]
+    },
+    options: chartDefaults
+  });
+
+  document.getElementById('ql-policy').innerHTML = '<div style="font-size:12px;color:var(--text-muted)">Nhấn "Train Q-Learning" để xem chính sách π*</div>';
+}
+
+// ══════════ BÀI 12 ══════════
+function initBai12() {
+  createChart('chartScenComp', {
+    type: 'bar',
+    data: {
+      labels: ['S1\nTruyền thống','S2\nSố hóa','S3\nAI dẫn','S4\nBao trùm','S5\nAIDEOM'],
+      datasets: [
+        { label: 'GDP 2030 (%↑)', data: [6.8,7.4,8.2,6.9,8.6], backgroundColor: ['rgba(245,158,11,0.6)','rgba(6,182,212,0.6)','rgba(168,85,247,0.6)','rgba(16,185,129,0.6)','rgba(236,72,153,0.6)'], borderRadius: 6 }
+      ]
+    },
+    options: { ...chartDefaults, plugins: { ...chartDefaults.plugins, legend: { display: false } } }
+  });
+
+  createChart('chartAlloc', {
+    type: 'line',
+    data: {
+      labels: ['2026','2027','2028','2029','2030'],
+      datasets: [
+        { label: 'Hạ tầng (I)', data: [22.5,23,23.5,24,24.5], borderColor: '#06b6d4', tension: 0.4, borderWidth: 2, fill: true, backgroundColor: 'rgba(6,182,212,0.05)' },
+        { label: 'AI', data: [10.5,12,14,16.5,19], borderColor: '#ec4899', tension: 0.4, borderWidth: 2, fill: true, backgroundColor: 'rgba(236,72,153,0.05)' },
+        { label: 'Nhân lực (H)', data: [14,15,16,17,18], borderColor: '#10b981', tension: 0.4, borderWidth: 2, fill: true, backgroundColor: 'rgba(16,185,129,0.05)' },
+        { label: 'CĐS (D)', data: [18,17.5,17,16,15], borderColor: '#a855f7', tension: 0.4, borderWidth: 2 }
+      ]
+    },
+    options: chartDefaults
+  });
+}
+
+// ══════════ INIT PAGE CHARTS ══════════
+const initializedPages = new Set();
+
+function initPageCharts(id) {
+  if (initializedPages.has(id)) return;
+  initializedPages.add(id);
+  const init = { home: initHome, bai1: initBai1, bai2: initBai2, bai3: initBai3, bai4: initBai4, bai5: initBai5, bai6: initBai6, bai7: initBai7, bai8: initBai8, bai9: initBai9, bai10: initBai10, bai11: initBai11, bai12: initBai12 };
+  if (init[id]) setTimeout(init[id], 50);
+}
+
+// ══════════ BOOT ══════════
+document.addEventListener('DOMContentLoaded', () => {
+  initPageCharts('home');
+});
+</script>
+</body>
+</html>
